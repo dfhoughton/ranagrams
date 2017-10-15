@@ -18,7 +18,7 @@ pub struct CharSet {
 }
 
 impl CharSet {
-    pub fn new(chars: &Vec<usize>) -> CharSet {
+    pub fn new(chars: &[usize]) -> CharSet {
         let mut contained = vec![false; chars.len()];
         let mut count = 0;
         for i in 0..chars.len() {
