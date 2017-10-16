@@ -8,7 +8,6 @@ use factory::WorkerFun;
 use std::mem;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
-use std::sync::{Once, ONCE_INIT};
 extern crate clap;
 use clap::{Arg, App, ArgMatches};
 extern crate num_cpus;
@@ -218,14 +217,10 @@ fn parse_cli() -> ArgMatches<'static> {
 }
 
 fn num_cpus_static_str() -> &'static str {
-    static mut NUM_CPUS: Option<&'static str> = None;
-    static NUM_CPUS_INIT: Once = ONCE_INIT;
-    NUM_CPUS_INIT.call_once(|| unsafe {
-        let string = num_cpus::get().to_string();
-        NUM_CPUS = Some(mem::transmute::<&str, &'static str>(&*string));
-        mem::forget(string);
-    });
-    unsafe {
-        NUM_CPUS.as_ref().unwrap()
-    }
+    let num_cpus_string = num_cpus::get().to_string();
+    let num_cpus_static_str = unsafe {
+        mem::transmute::<&str, &'static str>(&num_cpus_string)
+    };
+    mem::forget(num_cpus_string);
+    num_cpus_static_str
 }
