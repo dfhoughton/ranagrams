@@ -5,80 +5,17 @@ use std::io::{Read};
 use std::fs::File;
 use ranagrams::factory;
 use factory::WorkerFun;
+use std::mem;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
+use std::sync::{Once, ONCE_INIT};
 extern crate clap;
 use clap::{Arg, App, ArgMatches};
 extern crate num_cpus;
 
-macro_rules! parse_cli {
-    ($num_cpus:ident, $dest:ident) => {
-        let $num_cpus = num_cpus::get().to_string();
-        let $dest = App::new("ranagrams")
-                .version("0.1")
-                .author("David F. Houghton <dfhoughton@gmail.com>")
-                .about("Finds anagrams of a phrase")
-                .after_help(
-        "Put stuff to appear after the list of options here."
-                )
-                .arg(
-                    Arg::with_name("dictionary")
-                        .short("d")
-                        .long("dictionary")
-                        .value_name("file")
-                        .default_value("/Users/houghton/mostly_inoffensive_words.txt") // FIXME
-                        .help("a line-delimited list of words usable in anagrams")
-                        .takes_value(true)
-                )
-                .arg(
-                    Arg::with_name("set")
-                        .short("w")
-                        .long("words-in")
-                        .help("Returns the set of words composable from the letters in the input phrase")
-                )
-                .arg(
-                    Arg::with_name("include")
-                        .short("i")
-                        .long("include")
-                        .value_name("word")
-                        .help("include this word in the anagrams")
-                        .takes_value(true)
-                        .multiple(true)
-                        .number_of_values(1)
-                        .conflicts_with("set")
-                )
-                .arg(
-                    Arg::with_name("threads")
-                        .short("t")
-                        .long("threads")
-                        .takes_value(true)
-                        .default_value(&$num_cpus)
-                        .value_name("n")
-                        .help("the number of threads to use during anagram collection")
-                )
-                .arg(
-                    Arg::with_name("limit")
-                        .short("l")
-                        .long("limit")
-                        .takes_value(true)
-                        .value_name("n")
-                        .help("only find this many anagrams")
-                        .conflicts_with("set")
-                )
-                .arg(
-                    Arg::with_name("phrase")
-                        .value_name("word")
-                        .multiple(true)
-                        .required(true)
-                        .help("the words for which you want an anagram")
-                )
-                .get_matches();
-    };
-}
-
 fn main() {
     // parse the options
-    parse_cli!(n, options);
+    let options = parse_cli();
     let threads = match usize::from_str_radix(options.value_of("threads").unwrap(), 10) {
         Err(why) => {
             panic!("error parsing thread count: {}\n\n{}", why, options.usage());
@@ -215,5 +152,80 @@ impl WorkerFun<ToDo> for AnagramFun {
     }
     fn inspect(&self, thing: &ToDo) -> bool {
         thing.done()
+    }
+}
+
+fn parse_cli() -> ArgMatches<'static> {
+    App::new("ranagrams")
+            .version("0.1")
+            .author("David F. Houghton <dfhoughton@gmail.com>")
+            .about("Finds anagrams of a phrase")
+            .after_help(
+    "Put stuff to appear after the list of options here."
+            )
+            .arg(
+                Arg::with_name("dictionary")
+                    .short("d")
+                    .long("dictionary")
+                    .value_name("file")
+                    .default_value("/Users/houghton/mostly_inoffensive_words.txt") // FIXME
+                    .help("a line-delimited list of words usable in anagrams")
+                    .takes_value(true)
+            )
+            .arg(
+                Arg::with_name("set")
+                    .short("w")
+                    .long("words-in")
+                    .help("Returns the set of words composable from the letters in the input phrase")
+            )
+            .arg(
+                Arg::with_name("include")
+                    .short("i")
+                    .long("include")
+                    .value_name("word")
+                    .help("include this word in the anagrams")
+                    .takes_value(true)
+                    .multiple(true)
+                    .number_of_values(1)
+                    .conflicts_with("set")
+            )
+            .arg(
+                Arg::with_name("threads")
+                    .short("t")
+                    .long("threads")
+                    .takes_value(true)
+                    .default_value(num_cpus_static_str())
+                    .value_name("n")
+                    .help("the number of threads to use during anagram collection")
+            )
+            .arg(
+                Arg::with_name("limit")
+                    .short("l")
+                    .long("limit")
+                    .takes_value(true)
+                    .value_name("n")
+                    .help("only find this many anagrams")
+                    .conflicts_with("set")
+            )
+            .arg(
+                Arg::with_name("phrase")
+                    .value_name("word")
+                    .multiple(true)
+                    .required(true)
+                    .help("the words for which you want an anagram")
+            )
+            .get_matches()
+}
+
+fn num_cpus_static_str() -> &'static str {
+    static mut NUM_CPUS: Option<*const str> = None;
+    static NUM_CPUS_INIT: Once = ONCE_INIT;
+    NUM_CPUS_INIT.call_once(|| unsafe {
+        let string = num_cpus::get().to_string();
+        NUM_CPUS = Some(&*string);
+        mem::forget(string);
+    });
+    unsafe {
+        mem::transmute(*(&NUM_CPUS).as_ref().unwrap())
     }
 }
