@@ -1,7 +1,5 @@
 use std::mem::size_of;
 use util::{CharCount, CharSet, ToDo, Translator};
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
 pub struct Trie {
     pub root: TrieNode,

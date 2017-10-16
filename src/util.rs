@@ -1,8 +1,5 @@
-use std::collections::{HashMap, HashSet};
-use trie::TrieNode;
-use std::ptr;
+use std::collections::HashMap;
 use std::sync::Arc;
-use std::hash::{Hash, Hasher};
 
 #[cfg(test)]
 mod tests {
