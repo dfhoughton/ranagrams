@@ -218,14 +218,14 @@ fn parse_cli() -> ArgMatches<'static> {
 }
 
 fn num_cpus_static_str() -> &'static str {
-    static mut NUM_CPUS: Option<*const str> = None;
+    static mut NUM_CPUS: Option<&'static str> = None;
     static NUM_CPUS_INIT: Once = ONCE_INIT;
     NUM_CPUS_INIT.call_once(|| unsafe {
         let string = num_cpus::get().to_string();
-        NUM_CPUS = Some(&*string);
+        NUM_CPUS = Some(mem::transmute::<&str, &'static str>(&*string));
         mem::forget(string);
     });
     unsafe {
-        mem::transmute(*(&NUM_CPUS).as_ref().unwrap())
+        NUM_CPUS.as_ref().unwrap()
     }
 }
