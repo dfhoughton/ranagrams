@@ -1,7 +1,8 @@
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
+use std::cmp;
 use std::sync::mpsc::Receiver;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 #[derive(PartialEq, Eq, Debug)]
 enum BossMessage {
@@ -30,6 +31,11 @@ where
     I: Send + 'static,
     W: WorkerFun<I>,
 {
+    let mut wanting: isize = (roster as isize) - (materials.len() as isize);
+    if wanting < 0 {
+        wanting = 0;
+    }
+    let wanted = Arc::new(AtomicUsize::new(wanting as usize));
     let conveyor_belt = Arc::new(Mutex::new(materials));
     let (container, truck) = mpsc::channel::<Option<I>>();
     let workers = Arc::new(Mutex::new(Vec::with_capacity(roster)));
@@ -37,6 +43,7 @@ where
     let kill_switch = Arc::new(AtomicBool::new(false));
     (0..roster)
         .map(|i| {
+            let wanted = wanted.clone();
             let belt = conveyor_belt.clone();
             let container = container.clone();
             let manager = manager.clone();
@@ -45,6 +52,7 @@ where
             let kill_switch = kill_switch.clone();
             workers.lock().unwrap().push(worker);
             thread::spawn(move || {
+                let mut inbox = vec![];
                 for message in in_box {
                     if message == BossMessage::Stop {
                         break;
@@ -57,22 +65,36 @@ where
                         let mut temp = belt.lock().unwrap();
                         temp.pop()
                     } {
-                        if kill_switch.load(Ordering::Relaxed) {
-                            manager.send(WorkerMessage::Slain).ok();
-                            break;
-                        }
-                        let widgets = fun.improve(stuff);
-                        if !widgets.is_empty() {
-                            let mut belt = belt.lock().unwrap();
+                        // push the stuff into the owned queue and work off that
+                        inbox.push(stuff);
+                        while let Some(stuff) = inbox.pop() {
+                            if kill_switch.load(Ordering::Relaxed) {
+                                manager.send(WorkerMessage::Slain).ok();
+                                break;
+                            }
+                            let widgets = fun.improve(stuff);
+                            let mut undone = Vec::with_capacity(widgets.len());
                             for widget in widgets {
                                 if fun.inspect(&widget) {
-                                    // this bit of work is done, send it to its final destination
-                                    container.send(Some(widget)).ok(); // ship it
+                                    container.send(Some(widget)).ok();
                                 } else {
-                                    belt.push(widget); // put this back on the conveyor belt
+                                    undone.push(widget);
                                 }
                             }
-                            manager.send(WorkerMessage::WakeUp).ok();
+                            if !undone.is_empty() {
+                                let mut tithe =
+                                    cmp::min(wanted.load(Ordering::Relaxed), undone.len() - 1);
+                                if tithe > 0 {
+                                    wanted.fetch_add(tithe, Ordering::Relaxed);
+                                    let mut belt = belt.lock().unwrap();
+                                    while tithe > 0 {
+                                        belt.push(undone.pop().unwrap());
+                                        tithe -= 1;
+                                    }
+                                    manager.send(WorkerMessage::WakeUp).ok();
+                                }
+                                inbox.extend(undone);
+                            }
                         }
                     }
                     manager.send(WorkerMessage::Sleeping(i)).ok(); // send I'm empty message
