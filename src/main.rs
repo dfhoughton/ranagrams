@@ -1,14 +1,14 @@
 extern crate ranagrams;
 use ranagrams::util::{normalize, ToDo, Translator};
 use ranagrams::trie::{Trie, TrieNodeBuilder};
-use std::io::{Read};
+use std::io::Read;
 use std::fs::File;
 use ranagrams::factory;
 use factory::WorkerFun;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 extern crate clap;
-use clap::{Arg, App, ArgMatches};
+use clap::{App, Arg, ArgMatches};
 extern crate num_cpus;
 
 macro_rules! parse_cli {
@@ -82,22 +82,24 @@ fn main() {
     let threads = match usize::from_str_radix(options.value_of("threads").unwrap(), 10) {
         Err(why) => {
             panic!("error parsing thread count: {}\n\n{}", why, options.usage());
-        },
-        Ok(threads) => threads
+        }
+        Ok(threads) => threads,
     };
     let use_limit = options.is_present("limit");
     let limit = if use_limit {
         match usize::from_str_radix(options.value_of("limit").unwrap(), 10) {
-            Err(why) => panic!("could not parse anagram limit: {}\n\n{}", why, options.usage()),
-            Ok(limit) => limit
+            Err(why) => panic!(
+                "could not parse anagram limit: {}\n\n{}",
+                why,
+                options.usage()
+            ),
+            Ok(limit) => limit,
         }
     } else {
         0
     };
     let trie = make_trie(&options);
-    let af = AnagramFun {
-        root: trie,
-    };
+    let af = AnagramFun { root: trie };
 
     // create initial character count
     let mut cc = af.root
@@ -147,9 +149,10 @@ fn main() {
 
     if options.is_present("set") {
         let sort_key = Vec::with_capacity(0);
-        let mut found : Vec<String> = af.root.words_for(&cc, &sort_key)
+        let mut found: Vec<String> = af.root
+            .words_for(&cc, &sort_key)
             .into_iter()
-            .map(|(chars,_)| af.root.translator.etalsnart(&chars).unwrap() )
+            .map(|(chars, _)| af.root.translator.etalsnart(&chars).unwrap())
             .collect();
         found.sort();
         for word in found {
@@ -170,8 +173,8 @@ fn main() {
                 if use_limit {
                     count += 1;
                     if count == limit {
-                          kill_switch.store(true, Ordering::Relaxed);
-                          break;
+                        kill_switch.store(true, Ordering::Relaxed);
+                        break;
                     }
                 }
             } else {
@@ -184,14 +187,18 @@ fn main() {
 fn make_trie(opts: &ArgMatches) -> Trie {
     let mut file = match File::open(opts.value_of("dictionary").unwrap()) {
         Err(_) => panic!("could not read dictionary:\n\n{}", opts.usage()),
-        Ok(file) => file
+        Ok(file) => file,
     };
     let mut strings = String::new();
     match file.read_to_string(&mut strings) {
-        Err(why) => panic!("could not read words from dictionary: {}\n\n{}", why, opts.usage()),
+        Err(why) => panic!(
+            "could not read words from dictionary: {}\n\n{}",
+            why,
+            opts.usage()
+        ),
         Ok(_) => (),
     }
-    let words : Vec<&str> = strings.lines().collect();
+    let words: Vec<&str> = strings.lines().collect();
     let translator = Translator::new(normalize, words.iter().map(|s| *s));
     let mut t = TrieNodeBuilder::new();
     for word in words {

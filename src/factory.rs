@@ -67,33 +67,32 @@ where
                     } {
                         // push the stuff into the owned queue and work off that
                         inbox.push(stuff);
+                        wanted.fetch_sub(1, Ordering::Relaxed);
                         while let Some(stuff) = inbox.pop() {
                             if kill_switch.load(Ordering::Relaxed) {
                                 manager.send(WorkerMessage::Slain).ok();
                                 break;
                             }
-                            let widgets = fun.improve(stuff);
-                            let mut undone = Vec::with_capacity(widgets.len());
-                            for widget in widgets {
-                                if fun.inspect(&widget) {
-                                    container.send(Some(widget)).ok();
-                                } else {
-                                    undone.push(widget);
-                                }
-                            }
-                            if !undone.is_empty() {
-                                let mut tithe =
-                                    cmp::min(wanted.load(Ordering::Relaxed), undone.len() - 1);
-                                if tithe > 0 {
-                                    wanted.fetch_add(tithe, Ordering::Relaxed);
-                                    let mut belt = belt.lock().unwrap();
-                                    while tithe > 0 {
-                                        belt.push(undone.pop().unwrap());
-                                        tithe -= 1;
+                            if fun.inspect(&stuff) {
+                                container.send(Some(stuff)).ok();
+                            } else {
+                                let mut widgets = fun.improve(stuff);
+                                if !widgets.is_empty() {
+                                    let mut tithe =
+                                        cmp::min(wanted.load(Ordering::Relaxed), widgets.len() - 1);
+                                    if tithe > 0 {
+                                        wanted.fetch_add(tithe, Ordering::Relaxed);
+                                        let mut buffer = Vec::with_capacity(tithe);
+                                        while tithe > 0 {
+                                            buffer.push(widgets.pop().unwrap());
+                                            tithe -= 1;
+                                        }
+                                        let mut belt = belt.lock().unwrap();
+                                        belt.extend(buffer);
+                                        manager.send(WorkerMessage::WakeUp).ok();
                                     }
-                                    manager.send(WorkerMessage::WakeUp).ok();
+                                    inbox.extend(widgets);
                                 }
-                                inbox.extend(undone);
                             }
                         }
                     }

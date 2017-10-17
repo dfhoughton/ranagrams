@@ -99,9 +99,11 @@ impl CharCount {
     pub fn add(&mut self, word: Vec<usize>) -> bool {
         for i in word {
             if i > self.counts.len() {
-                return false
+                return false;
             }
-            unsafe { *self.counts.get_unchecked_mut(i) += 1; }
+            unsafe {
+                *self.counts.get_unchecked_mut(i) += 1;
+            }
             self.sum += 1;
         }
         true
@@ -109,9 +111,11 @@ impl CharCount {
     pub fn subtract(&mut self, word: Vec<usize>) -> bool {
         for i in word {
             if i > self.counts.len() && self.counts[i] == 0 {
-                return false
+                return false;
             }
-            unsafe { *self.counts.get_unchecked_mut(i) -= 1; }
+            unsafe {
+                *self.counts.get_unchecked_mut(i) -= 1;
+            }
             self.sum -= 1;
         }
         true
