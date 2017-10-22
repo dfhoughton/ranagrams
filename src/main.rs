@@ -8,6 +8,7 @@ use factory::WorkerFun;
 use ranagrams::cli;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
+use std::collections::HashSet;
 extern crate clap;
 use clap::ArgMatches;
 
@@ -135,9 +136,20 @@ fn make_trie(opts: &ArgMatches) -> Trie {
     }
     let words: Vec<&str> = strings.lines().collect();
     let translator = Translator::new(normalize, words.iter().map(|s| *s));
+    let any_excluded = opts.is_present("exclude");
+    let mut excluded = HashSet::new();
+    if any_excluded {
+        for word in opts.values_of("exclude").unwrap() {
+            excluded.insert(translator.translate(word).unwrap());
+        }
+    }
     let mut t = TrieNodeBuilder::new();
     for word in words {
-        t.add(&translator.translate(word).unwrap());
+        let translation = translator.translate(word).unwrap();
+        if any_excluded && excluded.contains(&translation) {
+            continue;
+        }
+        t.add(&translation);
     }
     Trie::new(t.build(), translator)
 }

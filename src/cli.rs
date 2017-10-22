@@ -36,6 +36,16 @@ pub fn parse() -> ArgMatches<'static> {
                 .conflicts_with("set"),
         )
         .arg(
+            Arg::with_name("exclude")
+                .short("x")
+                .long("exclude")
+                .value_name("word")
+                .help("exclude this word from anagrams")
+                .takes_value(true)
+                .multiple(true)
+                .number_of_values(1)
+        )
+        .arg(
             Arg::with_name("threads")
                 .short("t")
                 .long("threads")
