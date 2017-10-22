@@ -1,7 +1,5 @@
 use std::mem::size_of;
 use util::{CharCount, CharSet, ToDo, Translator};
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
 pub struct Trie {
     pub root: TrieNode,
@@ -170,13 +168,13 @@ impl TrieNodeBuilder {
         if i >= self.children.len() {
             self.children.resize(i + 1, None);
             unsafe {
-                let mut child = self.children.get_unchecked_mut(i);
+                let child = self.children.get_unchecked_mut(i);
                 *child = Some(TrieNodeBuilder::new());
                 child
             }
         } else if unsafe { self.children.get_unchecked(i).is_none() } {
             unsafe {
-                let mut child = self.children.get_unchecked_mut(i);
+                let child = self.children.get_unchecked_mut(i);
                 *child = Some(TrieNodeBuilder::new());
                 child
             }
