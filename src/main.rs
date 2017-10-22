@@ -98,7 +98,7 @@ fn main() {
         let materials = vec![ToDo::seed(cc)];
         let noah = Arc::new(af);
         let mine = noah.clone();
-        let (messages, kill_switch) = factory::manufacture(threads, materials, noah);
+        let (messages, kill_switch) = factory::manufacture(threads, 3, materials, noah);
         for m in messages {
             if let Some(todo) = m {
                 if prefixed {
