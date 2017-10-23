@@ -8,7 +8,9 @@ pub fn parse() -> ArgMatches<'static> {
         .version("0.1")
         .author("David F. Houghton <dfhoughton@gmail.com>")
         .about("Finds anagrams of a phrase")
-        .after_help("Put stuff to appear after the list of options here.")
+        .after_help("This is the first line.
+This is the second line.
+        ")
         .arg(
             Arg::with_name("dictionary")
                     .short("d")
