@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::cmp::{Eq, PartialEq};
+use std::hash::{Hash, Hasher};
 
 #[cfg(test)]
 mod tests {
@@ -58,6 +60,30 @@ pub struct CharCount {
     sum: usize,
     pub first: usize, // lowest index with any characters
     pub last: usize,  // highest index with any characters
+}
+
+impl PartialEq for CharCount {
+    fn eq(&self, other: &CharCount) -> bool {
+        if self.sum != other.sum {
+            return false
+        }
+        for i in 0..self.counts.len() {
+            if self.counts[i] != other.counts[i] {
+                return false
+            }
+        }
+        true
+    }
+}
+
+impl Eq for CharCount {}
+
+impl Hash for CharCount {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for c in &self.counts {
+            c.hash(state);
+        }
+    }
 }
 
 impl CharCount {
@@ -246,12 +272,12 @@ pub fn normalize(word: &str) -> String {
 #[derive(Debug)]
 pub struct ToDo {
     parent: Option<Arc<ToDo>>,
-    pub word: Vec<usize>,
-    pub undone: CharCount,
+    pub word: Arc<Vec<usize>>,
+    pub undone: Arc<CharCount>,
 }
 
 impl ToDo {
-    pub fn new(parent: Arc<ToDo>, word: Vec<usize>, undone: CharCount) -> ToDo {
+    pub fn new(parent: Arc<ToDo>, word: Arc<Vec<usize>>, undone: Arc<CharCount>) -> ToDo {
         ToDo {
             parent: Some(parent),
             word,
@@ -261,13 +287,13 @@ impl ToDo {
     pub fn seed(undone: CharCount) -> ToDo {
         ToDo {
             parent: None,
-            word: Vec::with_capacity(0),
-            undone: undone,
+            word: Arc::new(Vec::with_capacity(0)),
+            undone: Arc::new(undone),
         }
     }
     fn trace(&self, words: &mut Vec<Vec<usize>>) {
         if !self.word.is_empty() {
-            words.push(self.word.clone());
+            words.push((*self.word).clone());
             if let Some(ref t) = self.parent {
                 t.trace(words);
             }

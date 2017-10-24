@@ -86,7 +86,7 @@ fn main() {
     if options.is_present("set") {
         let sort_key = Vec::with_capacity(0);
         let mut found: Vec<String> = af.root
-            .words_for(&cc, &sort_key)
+            .words_for(Arc::new(cc), &sort_key)
             .into_iter()
             .map(|(chars, _)| af.root.translator.etalsnart(&chars).unwrap())
             .collect();
@@ -151,7 +151,7 @@ fn make_trie(opts: &ArgMatches) -> Trie {
         }
         t.add(&translation);
     }
-    Trie::new(t.build(), translator)
+    Trie::new(t.build(), translator, !opts.is_present("no_cache"))
 }
 
 struct AnagramFun {
@@ -162,8 +162,8 @@ impl WorkerFun<ToDo> for AnagramFun {
     fn improve(&self, needs_work: ToDo) -> Vec<ToDo> {
         let mut done = vec![];
         let arc = Arc::new(needs_work);
-        for (word, cc) in self.root.words_for(&arc.undone, &arc.word) {
-            done.push(ToDo::new(arc.clone(), word, cc))
+        for (word, cc) in self.root.words_for(arc.undone.clone(), &arc.word) {
+            done.push(ToDo::new(arc.clone(), word, cc.clone()))
         }
         done
     }

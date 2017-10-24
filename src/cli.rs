@@ -72,6 +72,12 @@ This is the second line.
                 .required(true)
                 .help("the words for which you want an anagram"),
         )
+        .arg(
+            Arg::with_name("no_cache")
+                .short("C")
+                .long("no-cache")
+                .help("do not cache partial results (this saves memory and costs speed)")
+        )
         .get_matches()
 }
 

@@ -1,16 +1,100 @@
 use std::mem::size_of;
 use util::{CharCount, CharSet, ToDo, Translator};
+use std::sync::{Mutex, Arc};
+use std::collections::HashMap;
+use std::cmp::Ordering;
 
 pub struct Trie {
     pub root: TrieNode,
     pub translator: Translator,
+    pub cache: Mutex<HashMap<Arc<CharCount>,Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>>>>,
+    pub use_cache: bool,
+    empty_list: Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>>,
 }
 
 impl Trie {
-    pub fn new(root: TrieNode, translator: Translator) -> Trie {
-        Trie { root, translator }
+    pub fn new(root: TrieNode, translator: Translator, use_cache: bool) -> Trie {
+        Trie { root, translator, use_cache, cache: Mutex::new(HashMap::new()), empty_list: Arc::new(Vec::with_capacity(0)) }
     }
-    pub fn words_for(&self, cc: &CharCount, sort_key: &Vec<usize>) -> Vec<(Vec<usize>, CharCount)> {
+    // for comparing two sort keys
+    fn ge_key(a: &[usize], b: &[usize]) -> Ordering {
+        for (i, count) in a.iter().enumerate() {
+            if i >= b.len() {
+                return Ordering::Greater
+            }
+            let count2 = &b[i];
+            if count > count2 {
+                return Ordering::Greater
+            } else if count < count2 {
+                return Ordering::Less
+            }
+        }
+        if a.len() > b.len() {
+            Ordering::Greater
+        } else {
+            Ordering::Equal
+        }
+    }
+    fn cached_index(key: &[usize], sorted_list: &Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>>) -> usize {
+        if sorted_list.len() == 1 {
+            0
+        } else if sorted_list.len() < 5 {
+            // linear search
+            for (i, &(ref k,_)) in sorted_list.iter().enumerate() {
+                match Trie::ge_key(key, &k) {
+                    Ordering::Greater | Ordering::Equal => return i,
+                    _ => (),
+                }
+            }
+            sorted_list.len() // the key is after all the items in the sorted list
+        } else {
+            let mut start = 0;
+            let mut end = sorted_list.len();
+            loop {
+                let delta = end - start;
+                if delta == 1 {
+                    return match Trie::ge_key(key, &sorted_list[start].0) {
+                        Ordering::Less => end,
+                        _ => start,
+                    }
+                }
+                let middle = start + delta / 2;
+                let middle_key = &sorted_list[middle].0;
+                match Trie::ge_key(key, middle_key) {
+                    Ordering::Less => start = middle,
+                    Ordering::Greater => end = middle,
+                    Ordering::Equal => return middle,
+                }
+            }
+        }
+    }
+    pub fn words_for(&self, cc: Arc<CharCount>, sort_key: &[usize]) -> Vec<(Arc<Vec<usize>>,Arc<CharCount>)> {
+        let list = if self.use_cache {
+            let cached = {
+                let map = self.cache.lock().unwrap();
+                map.get(&cc).map(Arc::clone)
+            };
+            if let Some(list) = cached {
+                list.clone()
+            } else {
+                let list = self.non_caching_words_for(&cc, sort_key);
+                {
+                    let mut map = self.cache.lock().unwrap();
+                    map.insert(cc.clone(), list.clone());
+                }
+                list
+            }
+        } else {
+            self.non_caching_words_for(&cc, sort_key)
+        };
+        let mut filtered = Vec::with_capacity(list.len());
+        for i in Trie::cached_index(sort_key, &list)..list.len() {
+            let (ref word, ref counts) = list[i];
+            filtered.push((word.clone(), counts.clone()));
+        }
+        filtered
+    }
+    fn non_caching_words_for(&self, cc: &CharCount, sort_key: &[usize]) -> Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>> {
         let mut paired = vec![];
         let seed = Vec::with_capacity(0);
         let mut set = cc.to_set();
@@ -20,17 +104,17 @@ impl Trie {
             cc,
             &mut set,
             1,
-            &sort_key,
-            true,
+            sort_key,
+            !self.use_cache,
             &mut paired,
         );
         if set.is_empty() {
-            paired
+            Arc::new(paired.into_iter().map(|(k,v)| (Arc::new(k), Arc::new(v))).collect())
         } else {
             // there was some character for which we could find no use
             // it therefore won't be possible to find a use for this character with smaller
             // character counts
-            Vec::with_capacity(0)
+            self.empty_list.clone()
         }
     }
     pub fn stringify(&self, todo: ToDo) -> String {
@@ -53,7 +137,7 @@ impl Trie {
         cc: &CharCount,
         set: &mut CharSet,
         level: usize,
-        sort_key: &Vec<usize>,
+        sort_key: &[usize],
         sort: bool,
         words: &mut Vec<(Vec<usize>, CharCount)>,
     ) {
