@@ -3,7 +3,7 @@ use util::{CharCount, CharSet, ToDo, Translator};
 use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
 use std::cmp::Ordering;
-use rand::{StdRng, Rng};
+use rand::{Rng, StdRng};
 
 pub struct Trie {
     pub root: TrieNode,
@@ -16,7 +16,13 @@ pub struct Trie {
 }
 
 impl Trie {
-    pub fn new(root: TrieNode, translator: Translator, use_cache: bool, shuffle: bool, rng: Option<StdRng>) -> Trie {
+    pub fn new(
+        root: TrieNode,
+        translator: Translator,
+        use_cache: bool,
+        shuffle: bool,
+        rng: Option<StdRng>,
+    ) -> Trie {
         Trie {
             root,
             translator,
@@ -46,10 +52,7 @@ impl Trie {
             Ordering::Equal
         }
     }
-    fn index(
-        key: &[usize],
-        sorted_list: &Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>,
-    ) -> usize {
+    fn index(key: &[usize], sorted_list: &Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>) -> usize {
         if sorted_list.len() == 0 {
             0
         } else {

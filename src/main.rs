@@ -168,7 +168,13 @@ fn make_trie(opts: &ArgMatches) -> Trie {
     } else {
         None
     };
-    Trie::new(t.build(), translator, !opts.is_present("no_cache"), random, rng)
+    Trie::new(
+        t.build(),
+        translator,
+        !opts.is_present("no_cache"),
+        random,
+        rng,
+    )
 }
 
 struct AnagramFun {

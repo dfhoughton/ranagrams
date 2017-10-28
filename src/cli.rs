@@ -3,11 +3,11 @@ use self::clap::{App, Arg, ArgMatches};
 
 pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> ArgMatches<'a> {
     let mut dictionary_argument = Arg::with_name("dictionary")
-            .short("d")
-            .long("dictionary")
-            .value_name("file")
-            .help("a line-delimited list of words usable in anagrams")
-            .takes_value(true);
+        .short("d")
+        .long("dictionary")
+        .value_name("file")
+        .help("a line-delimited list of words usable in anagrams")
+        .takes_value(true);
     if let Some(file) = dictionary {
         dictionary_argument = dictionary_argument.default_value(file);
     }
@@ -20,9 +20,7 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> ArgMatches<'a> {
 This is the second line.
         ",
         )
-        .arg(
-            dictionary_argument
-        )
+        .arg(dictionary_argument)
         .arg(
             Arg::with_name("set")
                 .short("w")
