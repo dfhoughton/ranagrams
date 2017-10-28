@@ -7,3 +7,4 @@ authors = ["dfhoughton <dfhoughton@gmail.com>"]
 num_cpus = "1.6.2"
 mpmc = "0.1.3" # for queue
 clap = "~2.19.0"
+rand = "0.3"

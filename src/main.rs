@@ -11,6 +11,8 @@ use std::sync::atomic::Ordering;
 use std::collections::HashSet;
 extern crate clap;
 use clap::ArgMatches;
+extern crate rand;
+use rand::StdRng;
 
 fn main() {
     // parse the options
@@ -151,7 +153,13 @@ fn make_trie(opts: &ArgMatches) -> Trie {
         }
         t.add(&translation);
     }
-    Trie::new(t.build(), translator, !opts.is_present("no_cache"))
+    let random = opts.is_present("random");
+    let rng = if random {
+        Some(StdRng::new().unwrap())
+    } else {
+        None
+    };
+    Trie::new(t.build(), translator, !opts.is_present("no_cache"), random, rng)
 }
 
 struct AnagramFun {

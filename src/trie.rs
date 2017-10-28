@@ -3,21 +3,26 @@ use util::{CharCount, CharSet, ToDo, Translator};
 use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
 use std::cmp::Ordering;
+use rand::{StdRng, Rng};
 
 pub struct Trie {
     pub root: TrieNode,
     pub translator: Translator,
     pub cache: RwLock<HashMap<Arc<CharCount>, Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>>>,
     pub use_cache: bool,
+    pub shuffle: bool,
     empty_list: Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>,
+    rng: Option<StdRng>,
 }
 
 impl Trie {
-    pub fn new(root: TrieNode, translator: Translator, use_cache: bool) -> Trie {
+    pub fn new(root: TrieNode, translator: Translator, use_cache: bool, shuffle: bool, rng: Option<StdRng>) -> Trie {
         Trie {
             root,
             translator,
             use_cache,
+            shuffle,
+            rng,
             cache: RwLock::new(HashMap::new()),
             empty_list: Arc::new(Vec::with_capacity(0)),
         }
@@ -97,6 +102,9 @@ impl Trie {
         let mut filtered = Vec::with_capacity(list.len());
         for &(ref word, ref counts) in &list[Trie::index(sort_key, &list)..] {
             filtered.push((word.clone(), counts.clone()));
+        }
+        if self.shuffle {
+            self.rng.unwrap().shuffle(&mut filtered);
         }
         filtered
     }

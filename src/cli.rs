@@ -80,6 +80,12 @@ This is the second line.
                 .long("no-cache")
                 .help("do not cache partial results (this saves memory and costs speed)"),
         )
+        .arg(
+            Arg::with_name("random")
+                .short("r")
+                .long("random")
+                .help("(partially) shuffle order of discovery"),
+        )
         .get_matches()
 }
 
