@@ -41,21 +41,12 @@ impl Trie {
             Ordering::Equal
         }
     }
-    fn cached_index(
+    fn index(
         key: &[usize],
         sorted_list: &Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>,
     ) -> usize {
         if sorted_list.len() == 0 {
             0
-        // } else if sorted_list.len() < 5 {
-        //     // linear search
-        //     for (i, &(ref k,_)) in sorted_list.iter().enumerate() {
-        //         match Trie::ge_key(key, &k) {
-        //             Ordering::Less => return i,
-        //             _ => (),
-        //         }
-        //     }
-        //     sorted_list.len() // the key is after all the items in the sorted list
         } else {
             let mut start = 0;
             let mut end = sorted_list.len();
@@ -63,7 +54,7 @@ impl Trie {
                 let delta = end - start;
                 if delta == 1 {
                     return match Trie::ge_key(key, &sorted_list[start].0) {
-                        Ordering::Less => start,
+                        Ordering::Less | Ordering::Equal => start,
                         _ => end,
                     };
                 }
@@ -104,8 +95,7 @@ impl Trie {
             self.non_caching_words_for(&cc, sort_key)
         };
         let mut filtered = Vec::with_capacity(list.len());
-        for i in Trie::cached_index(sort_key, &list)..list.len() {
-            let (ref word, ref counts) = list[i];
+        for &(ref word, ref counts) in &list[Trie::index(sort_key, &list)..] {
             filtered.push((word.clone(), counts.clone()));
         }
         filtered
