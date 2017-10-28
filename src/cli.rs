@@ -8,9 +8,11 @@ pub fn parse() -> ArgMatches<'static> {
         .version("0.1")
         .author("David F. Houghton <dfhoughton@gmail.com>")
         .about("Finds anagrams of a phrase")
-        .after_help("This is the first line.
+        .after_help(
+            "This is the first line.
 This is the second line.
-        ")
+        ",
+        )
         .arg(
             Arg::with_name("dictionary")
                     .short("d")
@@ -45,7 +47,7 @@ This is the second line.
                 .help("exclude this word from anagrams")
                 .takes_value(true)
                 .multiple(true)
-                .number_of_values(1)
+                .number_of_values(1),
         )
         .arg(
             Arg::with_name("threads")
@@ -76,7 +78,7 @@ This is the second line.
             Arg::with_name("no_cache")
                 .short("C")
                 .long("no-cache")
-                .help("do not cache partial results (this saves memory and costs speed)")
+                .help("do not cache partial results (this saves memory and costs speed)"),
         )
         .get_matches()
 }

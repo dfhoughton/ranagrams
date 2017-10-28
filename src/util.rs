@@ -60,7 +60,7 @@ pub struct CharCount {
     sum: usize,
     pub first: usize, // lowest index with any characters
     pub last: usize,  // highest index with any characters
-    hash: u128, // for quick hashing and equality
+    hash: u128,       // for quick hashing and equality
 }
 
 impl PartialEq for CharCount {
@@ -69,11 +69,11 @@ impl PartialEq for CharCount {
             self.hash == other.hash
         } else {
             if self.sum != other.sum {
-                return false
+                return false;
             }
             for i in 0..self.counts.len() {
                 if self.counts[i] != other.counts[i] {
-                    return false
+                    return false;
                 }
             }
             true
@@ -105,16 +105,16 @@ impl CharCount {
     // odometer and reads of the values as one big base-10 number
     pub fn calculate_hash(&mut self) {
         if self.hashed() {
-            return // already calculated
+            return; // already calculated
         }
         if self.counts.len() > 38 {
             // u128 can only hold 38.5 base-10 digits
             panic!("your alphabet is too large for the character count caching algorithm")
         }
         let mut i = 0;
-        let mut accumulator : u128 = 0;
+        let mut accumulator: u128 = 0;
         for c in &self.counts {
-            let mut value = ( c % 10 ) as u128;
+            let mut value = (c % 10) as u128;
             if i > 0 {
                 // assumption: if a word has more than 9 of a particular character,
                 // there won't be another word for which this is also true which

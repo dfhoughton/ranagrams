@@ -1,32 +1,38 @@
 use std::mem::size_of;
 use util::{CharCount, CharSet, ToDo, Translator};
-use std::sync::{RwLock, Arc};
+use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
 use std::cmp::Ordering;
 
 pub struct Trie {
     pub root: TrieNode,
     pub translator: Translator,
-    pub cache: RwLock<HashMap<Arc<CharCount>,Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>>>>,
+    pub cache: RwLock<HashMap<Arc<CharCount>, Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>>>,
     pub use_cache: bool,
-    empty_list: Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>>,
+    empty_list: Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>,
 }
 
 impl Trie {
     pub fn new(root: TrieNode, translator: Translator, use_cache: bool) -> Trie {
-        Trie { root, translator, use_cache, cache: RwLock::new(HashMap::new()), empty_list: Arc::new(Vec::with_capacity(0)) }
+        Trie {
+            root,
+            translator,
+            use_cache,
+            cache: RwLock::new(HashMap::new()),
+            empty_list: Arc::new(Vec::with_capacity(0)),
+        }
     }
     // for comparing two sort keys
     fn ge_key(a: &[usize], b: &[usize]) -> Ordering {
         for (i, count) in a.iter().enumerate() {
             if i == b.len() {
-                return Ordering::Greater
+                return Ordering::Greater;
             }
             let count2 = &b[i];
             if count > count2 {
-                return Ordering::Greater
+                return Ordering::Greater;
             } else if count < count2 {
-                return Ordering::Less
+                return Ordering::Less;
             }
         }
         if a.len() < b.len() {
@@ -35,7 +41,10 @@ impl Trie {
             Ordering::Equal
         }
     }
-    fn cached_index(key: &[usize], sorted_list: &Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>>) -> usize {
+    fn cached_index(
+        key: &[usize],
+        sorted_list: &Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>,
+    ) -> usize {
         if sorted_list.len() == 0 {
             0
         // } else if sorted_list.len() < 5 {
@@ -56,7 +65,7 @@ impl Trie {
                     return match Trie::ge_key(key, &sorted_list[start].0) {
                         Ordering::Less => start,
                         _ => end,
-                    }
+                    };
                 }
                 let middle = start + delta / 2;
                 let middle_key = &sorted_list[middle].0;
@@ -68,7 +77,11 @@ impl Trie {
             }
         }
     }
-    pub fn words_for(&self, cc: Arc<CharCount>, sort_key: &[usize]) -> Vec<(Arc<Vec<usize>>,Arc<CharCount>)> {
+    pub fn words_for(
+        &self,
+        cc: Arc<CharCount>,
+        sort_key: &[usize],
+    ) -> Vec<(Arc<Vec<usize>>, Arc<CharCount>)> {
         let list = if self.use_cache {
             let ref mut mutable = cc.clone();
             let hashed = Arc::make_mut(mutable);
@@ -97,7 +110,11 @@ impl Trie {
         }
         filtered
     }
-    fn non_caching_words_for(&self, cc: &CharCount, sort_key: &[usize]) -> Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>> {
+    fn non_caching_words_for(
+        &self,
+        cc: &CharCount,
+        sort_key: &[usize],
+    ) -> Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>> {
         let mut paired = vec![];
         let seed = Vec::with_capacity(0);
         let mut set = cc.to_set();
@@ -112,7 +129,12 @@ impl Trie {
             &mut paired,
         );
         if set.is_empty() {
-            Arc::new(paired.into_iter().map(|(k,v)| (Arc::new(k), Arc::new(v))).collect())
+            Arc::new(
+                paired
+                    .into_iter()
+                    .map(|(k, v)| (Arc::new(k), Arc::new(v)))
+                    .collect(),
+            )
         } else {
             // there was some character for which we could find no use
             // it therefore won't be possible to find a use for this character with smaller
