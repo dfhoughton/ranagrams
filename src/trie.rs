@@ -1,25 +1,25 @@
 use std::mem::size_of;
 use util::{CharCount, CharSet, ToDo, Translator};
-use std::sync::{Mutex, Arc};
+use std::sync::{RwLock, Arc};
 use std::collections::HashMap;
 use std::cmp::Ordering;
 
 pub struct Trie {
     pub root: TrieNode,
     pub translator: Translator,
-    pub cache: Mutex<HashMap<Arc<CharCount>,Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>>>>,
+    pub cache: RwLock<HashMap<Arc<CharCount>,Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>>>>,
     pub use_cache: bool,
     empty_list: Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>>,
 }
 
 impl Trie {
     pub fn new(root: TrieNode, translator: Translator, use_cache: bool) -> Trie {
-        Trie { root, translator, use_cache, cache: Mutex::new(HashMap::new()), empty_list: Arc::new(Vec::with_capacity(0)) }
+        Trie { root, translator, use_cache, cache: RwLock::new(HashMap::new()), empty_list: Arc::new(Vec::with_capacity(0)) }
     }
     // for comparing two sort keys
     fn ge_key(a: &[usize], b: &[usize]) -> Ordering {
         for (i, count) in a.iter().enumerate() {
-            if i >= b.len() {
+            if i == b.len() {
                 return Ordering::Greater
             }
             let count2 = &b[i];
@@ -29,24 +29,24 @@ impl Trie {
                 return Ordering::Less
             }
         }
-        if a.len() > b.len() {
-            Ordering::Greater
+        if a.len() < b.len() {
+            Ordering::Less
         } else {
             Ordering::Equal
         }
     }
     fn cached_index(key: &[usize], sorted_list: &Arc<Vec<(Arc<Vec<usize>>,Arc<CharCount>)>>) -> usize {
-        if sorted_list.len() == 1 {
+        if sorted_list.len() == 0 {
             0
-        } else if sorted_list.len() < 5 {
-            // linear search
-            for (i, &(ref k,_)) in sorted_list.iter().enumerate() {
-                match Trie::ge_key(key, &k) {
-                    Ordering::Greater | Ordering::Equal => return i,
-                    _ => (),
-                }
-            }
-            sorted_list.len() // the key is after all the items in the sorted list
+        // } else if sorted_list.len() < 5 {
+        //     // linear search
+        //     for (i, &(ref k,_)) in sorted_list.iter().enumerate() {
+        //         match Trie::ge_key(key, &k) {
+        //             Ordering::Less => return i,
+        //             _ => (),
+        //         }
+        //     }
+        //     sorted_list.len() // the key is after all the items in the sorted list
         } else {
             let mut start = 0;
             let mut end = sorted_list.len();
@@ -54,13 +54,13 @@ impl Trie {
                 let delta = end - start;
                 if delta == 1 {
                     return match Trie::ge_key(key, &sorted_list[start].0) {
-                        Ordering::Less => end,
-                        _ => start,
+                        Ordering::Less => start,
+                        _ => end,
                     }
                 }
                 let middle = start + delta / 2;
                 let middle_key = &sorted_list[middle].0;
-                match Trie::ge_key(key, middle_key) {
+                match Trie::ge_key(middle_key, key) {
                     Ordering::Less => start = middle,
                     Ordering::Greater => end = middle,
                     Ordering::Equal => return middle,
@@ -74,7 +74,7 @@ impl Trie {
             let hashed = Arc::make_mut(mutable);
             hashed.calculate_hash();
             let cached = {
-                let map = self.cache.lock().unwrap();
+                let map = self.cache.read().unwrap();
                 map.get(hashed).map(Arc::clone)
             };
             if let Some(list) = cached {
@@ -82,7 +82,7 @@ impl Trie {
             } else {
                 let list = self.non_caching_words_for(&cc, sort_key);
                 {
-                    let mut map = self.cache.lock().unwrap();
+                    let mut map = self.cache.write().unwrap();
                     map.insert(Arc::new(hashed.clone()), list.clone());
                 }
                 list
