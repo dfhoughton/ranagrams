@@ -70,9 +70,12 @@ impl Trie {
     }
     pub fn words_for(&self, cc: Arc<CharCount>, sort_key: &[usize]) -> Vec<(Arc<Vec<usize>>,Arc<CharCount>)> {
         let list = if self.use_cache {
+            let ref mut mutable = cc.clone();
+            let hashed = Arc::make_mut(mutable);
+            hashed.calculate_hash();
             let cached = {
                 let map = self.cache.lock().unwrap();
-                map.get(&cc).map(Arc::clone)
+                map.get(hashed).map(Arc::clone)
             };
             if let Some(list) = cached {
                 list.clone()
@@ -80,7 +83,7 @@ impl Trie {
                 let list = self.non_caching_words_for(&cc, sort_key);
                 {
                     let mut map = self.cache.lock().unwrap();
-                    map.insert(cc.clone(), list.clone());
+                    map.insert(Arc::new(hashed.clone()), list.clone());
                 }
                 list
             }

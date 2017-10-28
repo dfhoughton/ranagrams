@@ -60,19 +60,24 @@ pub struct CharCount {
     sum: usize,
     pub first: usize, // lowest index with any characters
     pub last: usize,  // highest index with any characters
+    hash: u128, // for quick hashing and equality
 }
 
 impl PartialEq for CharCount {
     fn eq(&self, other: &CharCount) -> bool {
-        if self.sum != other.sum {
-            return false
-        }
-        for i in 0..self.counts.len() {
-            if self.counts[i] != other.counts[i] {
+        if self.hashed() && other.hashed() {
+            self.hash == other.hash
+        } else {
+            if self.sum != other.sum {
                 return false
             }
+            for i in 0..self.counts.len() {
+                if self.counts[i] != other.counts[i] {
+                    return false
+                }
+            }
+            true
         }
-        true
     }
 }
 
@@ -80,14 +85,51 @@ impl Eq for CharCount {}
 
 impl Hash for CharCount {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        for c in &self.counts {
-            c.hash(state);
+        if self.hash == 0 {
+            panic!("should never be hashing counts without a calculated hash")
         }
+        self.hash.hash(state);
     }
 }
 
 impl CharCount {
+    fn hashed(&self) -> bool {
+        self.hash > 0 || self.sum == 0
+    }
+    fn confirm_mutable(&self) {
+        if self.hashed() {
+            panic!("count should be mutable")
+        }
+    }
+    // calculate the hash -- this treats the character counts as a sort of
+    // odometer and reads of the values as one big base-10 number
+    pub fn calculate_hash(&mut self) {
+        if self.hashed() {
+            return // already calculated
+        }
+        if self.counts.len() > 38 {
+            // u128 can only hold 38.5 base-10 digits
+            panic!("your alphabet is too large for the character count caching algorithm")
+        }
+        let mut i = 0;
+        let mut accumulator : u128 = 0;
+        for c in &self.counts {
+            let mut value = ( c % 10 ) as u128;
+            if i > 0 {
+                // assumption: if a word has more than 9 of a particular character,
+                // there won't be another word for which this is also true which
+                // is also identical in every other character count mod 10
+                i *= 10;
+                value = value * i;
+            } else {
+                i = 1;
+            }
+            accumulator = accumulator + value;
+        }
+        self.hash = accumulator;
+    }
     pub unsafe fn decrement(&mut self, i: usize) {
+        self.confirm_mutable();
         self.counts[i] -= 1;
         self.sum -= 1;
         if self.sum == 0 {
@@ -132,6 +174,7 @@ impl CharCount {
         true
     }
     pub fn subtract(&mut self, word: Vec<usize>) -> bool {
+        self.confirm_mutable();
         for i in word {
             if i > self.counts.len() && self.counts[i] == 0 {
                 return false;
@@ -223,6 +266,7 @@ impl Translator {
             sum: 0,
             first: 0,
             last: 0,
+            hash: 0,
         };
         for c in word.chars() {
             if let Some(&i) = self.map.get(&c) {

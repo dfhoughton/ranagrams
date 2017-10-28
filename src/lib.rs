@@ -1,3 +1,4 @@
+#![feature(i128_type)]
 pub mod cli;
 pub mod trie;
 pub mod util;
