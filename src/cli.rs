@@ -1,9 +1,16 @@
 extern crate clap;
 use self::clap::{App, Arg, ArgMatches};
-extern crate num_cpus;
-use std::mem;
 
-pub fn parse() -> ArgMatches<'static> {
+pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> ArgMatches<'a> {
+    let mut dictionary_argument = Arg::with_name("dictionary")
+            .short("d")
+            .long("dictionary")
+            .value_name("file")
+            .help("a line-delimited list of words usable in anagrams")
+            .takes_value(true);
+    if let Some(file) = dictionary {
+        dictionary_argument = dictionary_argument.default_value(file);
+    }
     App::new("ranagrams")
         .version("0.1")
         .author("David F. Houghton <dfhoughton@gmail.com>")
@@ -14,13 +21,7 @@ This is the second line.
         ",
         )
         .arg(
-            Arg::with_name("dictionary")
-                    .short("d")
-                    .long("dictionary")
-                    .value_name("file")
-                    .default_value("/Users/houghton/mostly_inoffensive_words.txt") // FIXME
-                    .help("a line-delimited list of words usable in anagrams")
-                    .takes_value(true),
+            dictionary_argument
         )
         .arg(
             Arg::with_name("set")
@@ -54,7 +55,7 @@ This is the second line.
                 .short("t")
                 .long("threads")
                 .takes_value(true)
-                .default_value(num_cpus_static_str())
+                .default_value(cpus)
                 .value_name("n")
                 .help("the number of threads to use during anagram collection"),
         )
@@ -87,11 +88,4 @@ This is the second line.
                 .help("(partially) shuffle order of discovery"),
         )
         .get_matches()
-}
-
-fn num_cpus_static_str() -> &'static str {
-    let num_cpus_string = num_cpus::get().to_string();
-    let num_cpus_static_str = unsafe { mem::transmute::<&str, &'static str>(&num_cpus_string) };
-    mem::forget(num_cpus_string);
-    num_cpus_static_str
 }

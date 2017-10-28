@@ -13,10 +13,19 @@ extern crate clap;
 use clap::ArgMatches;
 extern crate rand;
 use rand::StdRng;
+extern crate num_cpus;
+use std::ops::Deref;
 
 fn main() {
     // parse the options
-    let options = cli::parse();
+    let cpus = num_cpus::get().to_string();
+    let default_dir = if let Some(mut buf) = std::env::home_dir() {
+        buf.push(".anagram-dictionary.txt");
+        Some(buf.to_str().unwrap().to_string())
+    } else {
+        None
+    };
+    let options = cli::parse(&cpus, default_dir.as_ref().map(String::deref));
     let threads = match usize::from_str_radix(options.value_of("threads").unwrap(), 10) {
         Err(why) => {
             panic!("error parsing thread count: {}\n\n{}", why, options.usage());
