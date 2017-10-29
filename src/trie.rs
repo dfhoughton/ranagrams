@@ -139,11 +139,11 @@ impl Trie {
         sort_key: &[usize],
     ) -> Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>> {
         let mut paired = vec![];
-        let seed = Vec::with_capacity(0);
+        let mut seed = Vec::with_capacity(cc.sum);
         let mut set = cc.to_set();
         Trie::walk(
             &self.root,
-            seed,
+            &mut seed,
             cc,
             &mut set,
             1,
@@ -181,7 +181,7 @@ impl Trie {
 
     pub fn walk(
         node: &TrieNode,
-        seed: Vec<usize>,
+        seed: &mut Vec<usize>,
         cc: &CharCount,
         set: &mut CharSet,
         level: usize,
@@ -216,11 +216,10 @@ impl Trie {
                     unsafe {
                         characters_remaining.decrement(c);
                     }
-                    let mut longer = seed.clone(); // TODO remove cloning here
-                    longer.push(c);
+                    seed.push(c);
                     Trie::walk(
                         t,
-                        longer,
+                        seed,
                         &characters_remaining,
                         set,
                         level + 1,
@@ -228,6 +227,7 @@ impl Trie {
                         sorting && (c == sort_char),
                         words,
                     );
+                    seed.pop();
                 }
             }
         }

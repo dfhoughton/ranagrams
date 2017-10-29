@@ -57,7 +57,7 @@ impl CharSet {
 #[derive(Clone, Debug)]
 pub struct CharCount {
     pub counts: Vec<usize>, // TODO pub only for debugging purposes
-    sum: usize,
+    pub sum: usize,
     pub first: usize, // lowest index with any characters
     pub last: usize,  // highest index with any characters
     hash: u128,       // for quick hashing and equality
