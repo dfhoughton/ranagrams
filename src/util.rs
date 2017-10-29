@@ -87,15 +87,15 @@ impl Eq for CharCount {}
 
 impl Hash for CharCount {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        if self.hash == 0 {
-            panic!("should never be hashing counts without a calculated hash")
-        }
+        // if !self.hashed() {
+        //     panic!("should never be hashing counts without a calculated hash: {:?}", self)
+        // }
         self.hash.hash(state);
     }
 }
 
 impl CharCount {
-    fn hashed(&self) -> bool {
+    pub fn hashed(&self) -> bool {
         self.hash > 0 || self.sum == 0
     }
     fn confirm_mutable(&self) {

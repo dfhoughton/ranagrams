@@ -30,9 +30,10 @@ impl Trie {
                 panic!("the cache only works with alphabets of 38 characters or fewer")
             }
             let mut powers_of_ten = Vec::with_capacity(n);
-            for i in 0..n {
-                let p = (10 as u128) ^ (i as u128);
-                powers_of_ten.push(p)
+            let mut p : u128 = 1;
+            for _ in 0..n {
+                powers_of_ten.push(p);
+                p = p * 10;
             }
             powers_of_ten
         } else {
@@ -98,12 +99,17 @@ impl Trie {
         sort_key: &[usize],
     ) -> Vec<(Arc<Vec<usize>>, Arc<CharCount>)> {
         let list = if self.use_cache {
-            let ref mut mutable = cc.clone();
-            let hashed = Arc::make_mut(mutable);
-            hashed.calculate_hash(&self.powers_of_ten);
+            let hashed = if !cc.hashed() {
+                let ref mut mutable = cc.clone();
+                let mut hashed = Arc::make_mut(mutable).clone();
+                hashed.calculate_hash(&self.powers_of_ten);
+                Arc::new(hashed)
+            } else {
+                cc.clone()
+            };
             let cached = {
                 let map = self.cache.read().unwrap();
-                map.get(hashed).map(Arc::clone)
+                map.get(&hashed).map(Arc::clone)
             };
             if let Some(list) = cached {
                 list.clone()
@@ -111,7 +117,7 @@ impl Trie {
                 let list = self.non_caching_words_for(&cc, sort_key);
                 {
                     let mut map = self.cache.write().unwrap();
-                    map.insert(Arc::new(hashed.clone()), list.clone());
+                    map.insert(hashed, list.clone());
                 }
                 list
             }
