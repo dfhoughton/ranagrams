@@ -1,6 +1,8 @@
 # ranagrams
 yet another anagram algorithm, this time in Rust
 
+## Usage
+
 The text provided by `--help`.
 ```
 USAGE:
@@ -91,3 +93,10 @@ so large that the process crashes. If you turn off the cache ranagrams will use
 a constant amount of memory, though it may take considerably longer to find all
 anagrams.
 ```
+
+I have made many variants of this anagram algorithm. This is the first in Rust.
+It is more efficient and faster than any of the previous versions. I cannot say
+that this is particularly good or idiomatic Rust. It is the fist significant
+bit of Rust I've ever written. To the extent that this is good Rust, the credit
+is entirely due to @TurkeyMcMac, who knows Rust much better than I do and could
+generally tell me when I was doing something particularly stupid.
