@@ -91,6 +91,44 @@ complete alphabet, the cache used by the dynamic programming algorithm may grow
 so large that the process crashes. If you turn off the cache ranagrams will use
 a constant amount of memory, though it may take considerably longer to find all
 anagrams.
+
+Text Normalization
+
+Ranagrams attempst to strip away certain characters from your word list and all
+other textual input, so it will treat "c-a-t" and " C A T " the same as "cat".
+Here is the actual code that does this:
+
+    pub fn normalize(word: &str) -> String {
+        word.trim()
+            .to_lowercase()
+            .chars()
+            .filter(|c| c.is_alphabetic())
+            .collect::<String>()
+    }
+
+I have not tested what this will do for something like ß or Í. You may want to
+normalize the text yourself before you give it to ranagrams.
+
+NOTE:
+
+The caching algorithm treats character counts as long base-10 numbers. So, for
+example, "cat" might be 111 if "c" is 100s, "a" is 10s, and "t" is 1s. Then
+"cad" might be 1110 -- "d" is 1000s, and there is one of them, but there is no
+"t", so the 1s place is 0. If you have a phrase, like
+
+    "Dhrtaraashtra uvaaca, dharmakshetre kurukshetre samavetaa yuyutsavah"
+
+which has 15 a's, the "a" count has to be represented as 5 -- 15 mod 10 is 5. In
+other words, there isn't space in the a's column of the number for all the a's
+in the phrase. It is unlikely that this will ever cause trouble, because for a
+particular phrase you are unlikely to be encounter two sets of character counts
+during processing that have different counts but the same code. Also, a phrase
+this size will consume so much cache space that the process will probably crash
+before you encounter this collision.
+
+Another consideration with caching is that this scheme can only accommodate
+alphabets up to 38 characters in size. You won't hit this limit, of course,
+unless you modify the ranagrams
 ```
 
 I have made many variants of this anagram algorithm. This is the first in Rust.
