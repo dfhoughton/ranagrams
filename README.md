@@ -10,31 +10,30 @@ USAGE:
 
 FLAGS:
     -h, --help        Prints help information
-    -C, --no-cache    do not cache partial results (this saves memory and costs speed)
-    -r, --random      (partially) shuffle order of discovery
+    -C, --no-cache    Do not cache partial results (this saves memory and costs speed)
+    -r, --random      (Partially) shuffle order of discovery
     -w, --words-in    Returns the set of words composable from the letters in the input phrase
     -V, --version     Prints version information
 
 OPTIONS:
-    -d, --dictionary <file>    a line-delimited list of words usable in anagrams [default: /Users/houghton/.anagram-dictionary.txt]
-    -x, --exclude <word>...    exclude this word from anagrams
-    -i, --include <word>...    include this word in the anagrams
-    -l, --limit <n>            only find this many anagrams
-    -t, --threads <n>          the number of threads to use during anagram collection [default: 8]
+    -d, --dictionary <file>    A line-delimited list of words usable in anagrams [default: /Users/houghton/.anagram-dictionary.txt]
+    -x, --exclude <word>...    Exclude this word from anagrams
+    -i, --include <word>...    Include this word in the anagrams
+    -l, --limit <n>            Only find this many anagrams
+    -t, --threads <n>          The number of threads to use during anagram collection [default: 8]
 
 ARGS:
-    <word>...    the words for which you want an anagram
+    <word>...    The words for which you want an anagram
 
-Ranagrams generates all the possible anagrams from a given phrase, dictionary,
-and text normalization (elimination of non-word characters and conversion of
-case). Note "given some dictionary." Ranagrams does not have a word list built
-in. You must tell it what words it may use in an anagram. I have made myself
-such a list out of a list of English words I found on the Internet from which I
-delted all the words likely to offend people. By default ranagrams will look in
-your home directory for a file called .anagrams-dictionary.txt.
+Ranagrams generates all the possible anagrams from a given phrase and
+dictionary. Note "given some dictionary." Ranagrams does not have a word list
+built in. You must tell it what words it may use in an anagram. I have made
+myself such a list out of a list of English words I found on the Internet from
+which I delted all the words likely to offend people. By default ranagrams will
+look in your home directory for a file called .anagrams-dictionary.txt.
 
-In many cases this a simple phrase will have hundreds of thousands or millions
-of phrases, setting aside permutations. The phrase "rotten apple", for example,
+In many cases a simple phrase will have hundreds of thousands or millions of
+anagrams, setting aside permutations. The phrase "rotten apple", for example,
 with a fairly ordinary dictionary of of 109,217 English words, produces 2695
 anagrams. Here are 10:
 
@@ -127,8 +126,7 @@ this size will consume so much cache space that the process will probably crash
 before you encounter this collision.
 
 Another consideration with caching is that this scheme can only accommodate
-alphabets up to 38 characters in size. You won't hit this limit, of course,
-unless you modify the ranagrams
+alphabets up to 38 characters in size.
 ```
 
 An example use:

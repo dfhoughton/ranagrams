@@ -117,8 +117,7 @@ this size will consume so much cache space that the process will probably crash
 before you encounter this collision.
 
 Another consideration with caching is that this scheme can only accommodate
-alphabets up to 38 characters in size. You won't hit this limit, of course,
-unless you modify the ranagrams
+alphabets up to 38 characters in size.
         "#,
         )
         .arg(dictionary_argument)
