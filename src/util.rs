@@ -68,12 +68,14 @@ impl PartialEq for CharCount {
         if self.hashed() && other.hashed() {
             self.hash == other.hash
         } else {
-            if self.sum != other.sum {
+            if !(self.sum == other.sum && self.first == other.first && self.last==other.last) {
                 return false;
             }
-            for i in 0..self.counts.len() {
-                if self.counts[i] != other.counts[i] {
-                    return false;
+            unsafe {
+                for i in 0..(self.last + 1) {
+                    if *self.counts.get_unchecked(i) != *other.counts.get_unchecked(i) {
+                        return false;
+                    }
                 }
             }
             true
@@ -122,7 +124,7 @@ impl CharCount {
     }
     pub unsafe fn decrement(&mut self, i: usize) {
         self.confirm_mutable();
-        self.counts[i] -= 1;
+        *self.counts.get_unchecked_mut(i) -= 1;
         self.sum -= 1;
         if self.sum == 0 {
             self.first = 0;
@@ -130,7 +132,7 @@ impl CharCount {
         } else if self.first != self.last {
             if self.sum == 1 {
                 for j in self.first..(self.last + 1) {
-                    if self.counts[j] > 0 {
+                    if *self.counts.get_unchecked(j) > 0 {
                         self.first = j;
                         self.last = j;
                         break;
@@ -138,14 +140,14 @@ impl CharCount {
                 }
             } else if i == self.first {
                 for j in self.first..(self.last + 1) {
-                    if self.counts[j] > 0 {
+                    if *self.counts.get_unchecked(j) > 0 {
                         self.first = j;
                         break;
                     }
                 }
             } else if i == self.last {
                 for j in (self.first..(self.last + 1)).rev() {
-                    if self.counts[j] > 0 {
+                    if *self.counts.get_unchecked(j) > 0 {
                         self.last = j;
                         break;
                     }
