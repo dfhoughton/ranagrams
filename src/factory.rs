@@ -14,7 +14,7 @@ enum BossMessage {
 enum WorkerMessage {
     WakeUp,
     Slain,
-    Sleeping(usize),
+    Sleeping(usize), // usize is an id indicating the sleeper
 }
 
 pub trait WorkerFun<I: Send + 'static>: Send + Sync + 'static {
