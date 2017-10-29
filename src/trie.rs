@@ -30,7 +30,7 @@ impl Trie {
                 panic!("the cache only works with alphabets of 38 characters or fewer")
             }
             let mut powers_of_ten = Vec::with_capacity(n);
-            let mut p : u128 = 1;
+            let mut p: u128 = 1;
             for _ in 0..n {
                 powers_of_ten.push(p);
                 p = p * 10;
