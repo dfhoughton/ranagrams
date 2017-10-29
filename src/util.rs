@@ -103,28 +103,20 @@ impl CharCount {
     }
     // calculate the hash -- this treats the character counts as a sort of
     // odometer and reads of the values as one big base-10 number
-    pub fn calculate_hash(&mut self) {
+    pub fn calculate_hash(&mut self, powers_of_ten: &[u128]) {
         if self.hashed() {
             return; // already calculated
         }
-        if self.counts.len() > 38 {
-            // u128 can only hold 38.5 base-10 digits
-            panic!("your alphabet is too large for the character count caching algorithm")
-        }
-        let mut i = 0;
         let mut accumulator: u128 = 0;
-        for c in &self.counts {
-            let mut value = (c % 10) as u128;
-            if i > 0 {
-                // assumption: if a word has more than 9 of a particular character,
-                // there won't be another word for which this is also true which
-                // is also identical in every other character count mod 10
-                i *= 10;
-                value = value * i;
-            } else {
-                i = 1;
+        unsafe {
+            for i in self.first..(self.last + 1) {
+                let c = self.counts.get_unchecked(i);
+                if c > &0 {
+                    let p = powers_of_ten.get_unchecked(i);
+                    let value = (c % 10) as u128;
+                    accumulator = accumulator + value * p;
+                }
             }
-            accumulator = accumulator + value;
         }
         self.hash = accumulator;
     }
@@ -259,6 +251,9 @@ impl Translator {
             map,
             map_back,
         }
+    }
+    pub fn alphabet_size(&self) -> usize {
+        self.map.len()
     }
     pub fn count(&self, word: &str) -> Option<CharCount> {
         let mut cc = CharCount {

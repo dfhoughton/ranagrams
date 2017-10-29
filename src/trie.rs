@@ -13,6 +13,7 @@ pub struct Trie {
     pub shuffle: bool,
     empty_list: Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>,
     rng: Option<StdRng>,
+    powers_of_ten: Vec<u128>
 }
 
 impl Trie {
@@ -23,6 +24,20 @@ impl Trie {
         shuffle: bool,
         rng: Option<StdRng>,
     ) -> Trie {
+        let powers_of_ten = if use_cache {
+            let n = translator.alphabet_size();
+            if n > 38 {
+                panic!("the cache only works with alphabets of 38 characters or fewer")
+            }
+            let mut powers_of_ten = Vec::with_capacity(n);
+            for i in 0..n {
+                let p = (10 as u128)^ (i as u128);
+                powers_of_ten.push(p)
+            }
+            powers_of_ten
+        } else {
+            Vec::with_capacity(0)
+        };
         Trie {
             root,
             translator,
@@ -31,6 +46,7 @@ impl Trie {
             rng,
             cache: RwLock::new(HashMap::new()),
             empty_list: Arc::new(Vec::with_capacity(0)),
+            powers_of_ten: powers_of_ten,
         }
     }
     // for comparing two sort keys
@@ -84,7 +100,7 @@ impl Trie {
         let list = if self.use_cache {
             let ref mut mutable = cc.clone();
             let hashed = Arc::make_mut(mutable);
-            hashed.calculate_hash();
+            hashed.calculate_hash(&self.powers_of_ten);
             let cached = {
                 let map = self.cache.read().unwrap();
                 map.get(hashed).map(Arc::clone)
