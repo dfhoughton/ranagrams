@@ -131,20 +131,33 @@ alphabets up to 38 characters in size. You won't hit this limit, of course,
 unless you modify the ranagrams
 ```
 
+An example use:
+
+```
+~ $ ranagrams eat
+eat
+a et
+eta
+ate
+tea
+```
+
+## Installation
+
+This is not yet up on crates.io. To install it you will need to install the
+nightly version of Rust (I believe), clone this project or copy it to your
+machine, and run `cargo build --release` in its directory. This will produce an
+executable called `target/release/ranagrams`. To use the executable you will
+need a word list. I have not checked mine in. You can find word lists on-line if
+you simply search for "word list". The list will need to have all the forms you
+are interested in. Ranagrams cannot infer "cats" from "cat", much less "brought"
+from "bring".
+
+## History and Credits
+
 I have made many variants of this anagram algorithm. This is the first in Rust.
 It is more efficient and faster than any of the previous versions. I cannot say
 that this is particularly good or idiomatic Rust. It is the fist significant
 bit of Rust I've ever written. To the extent that this is good Rust, the credit
 is entirely due to @TurkeyMcMac, who knows Rust much better than I do and could
 generally tell me when I was doing something particularly stupid.
-
-## Installation
-
-This is not yet up on crates.io. To install it will need to install the nightly
-version of Rust (I believe), clone this project or copy it to your machine, and
-run `cargo build --release` in its directory. This will produce an executable
-called `target/release/ranagrams`. To use the executable you will need a word
-list. I have not checked mine in. You can find word lists on-line if you simply
-search for "word list". The list will need to have all the forms you are
-interested in. Ranagrams cannot infer "cats" from "cat", much less "brought"
-from "bring".
