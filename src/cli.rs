@@ -6,7 +6,7 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> ArgMatches<'a> {
         .short("d")
         .long("dictionary")
         .value_name("file")
-        .help("a line-delimited list of words usable in anagrams")
+        .help("A line-delimited list of words usable in anagrams")
         .takes_value(true);
     if let Some(file) = dictionary {
         dictionary_argument = dictionary_argument.default_value(file);
@@ -16,16 +16,15 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> ArgMatches<'a> {
         .author("David F. Houghton <dfhoughton@gmail.com>")
         .about("Finds anagrams of a phrase")
         .after_help(
-            r#"Ranagrams generates all the possible anagrams from a given phrase, dictionary,
-and text normalization (elimination of non-word characters and conversion of
-case). Note "given some dictionary." Ranagrams does not have a word list built
-in. You must tell it what words it may use in an anagram. I have made myself
-such a list out of a list of English words I found on the Internet from which I
-delted all the words likely to offend people. By default ranagrams will look in
-your home directory for a file called .anagrams-dictionary.txt.
+            r#"Ranagrams generates all the possible anagrams from a given phrase and
+dictionary. Note "given some dictionary." Ranagrams does not have a word list
+built in. You must tell it what words it may use in an anagram. I have made
+myself such a list out of a list of English words I found on the Internet from
+which I delted all the words likely to offend people. By default ranagrams will
+look in your home directory for a file called .anagrams-dictionary.txt.
 
-In many cases this a simple phrase will have hundreds of thousands or millions
-of phrases, setting aside permutations. The phrase "rotten apple", for example,
+In many cases a simple phrase will have hundreds of thousands or millions of
+anagrams, setting aside permutations. The phrase "rotten apple", for example,
 with a fairly ordinary dictionary of of 109,217 English words, produces 2695
 anagrams. Here are 10:
 
@@ -134,7 +133,7 @@ unless you modify the ranagrams
                 .short("i")
                 .long("include")
                 .value_name("word")
-                .help("include this word in the anagrams")
+                .help("Include this word in the anagrams")
                 .takes_value(true)
                 .multiple(true)
                 .number_of_values(1)
@@ -145,7 +144,7 @@ unless you modify the ranagrams
                 .short("x")
                 .long("exclude")
                 .value_name("word")
-                .help("exclude this word from anagrams")
+                .help("Exclude this word from anagrams")
                 .takes_value(true)
                 .multiple(true)
                 .number_of_values(1),
@@ -157,7 +156,7 @@ unless you modify the ranagrams
                 .takes_value(true)
                 .default_value(cpus)
                 .value_name("n")
-                .help("the number of threads to use during anagram collection"),
+                .help("The number of threads to use during anagram collection"),
         )
         .arg(
             Arg::with_name("limit")
@@ -165,7 +164,7 @@ unless you modify the ranagrams
                 .long("limit")
                 .takes_value(true)
                 .value_name("n")
-                .help("only find this many anagrams")
+                .help("Only find this many anagrams")
                 .conflicts_with("set"),
         )
         .arg(
@@ -173,19 +172,19 @@ unless you modify the ranagrams
                 .value_name("word")
                 .multiple(true)
                 .required(true)
-                .help("the words for which you want an anagram"),
+                .help("The words for which you want an anagram"),
         )
         .arg(
             Arg::with_name("no_cache")
                 .short("C")
                 .long("no-cache")
-                .help("do not cache partial results (this saves memory and costs speed)"),
+                .help("Do not cache partial results (this saves memory and costs speed)"),
         )
         .arg(
             Arg::with_name("random")
                 .short("r")
                 .long("random")
-                .help("(partially) shuffle order of discovery"),
+                .help("(Partially) shuffle order of discovery"),
         )
         .get_matches()
 }
