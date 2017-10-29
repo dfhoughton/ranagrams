@@ -13,7 +13,7 @@ pub struct Trie {
     pub shuffle: bool,
     empty_list: Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>,
     rng: Option<StdRng>,
-    powers_of_ten: Vec<u128>
+    powers_of_ten: Vec<u128>,
 }
 
 impl Trie {
@@ -31,7 +31,7 @@ impl Trie {
             }
             let mut powers_of_ten = Vec::with_capacity(n);
             for i in 0..n {
-                let p = (10 as u128)^ (i as u128);
+                let p = (10 as u128) ^ (i as u128);
                 powers_of_ten.push(p)
             }
             powers_of_ten
