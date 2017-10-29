@@ -68,7 +68,7 @@ impl PartialEq for CharCount {
         if self.hashed() && other.hashed() {
             self.hash == other.hash
         } else {
-            if !(self.sum == other.sum && self.first == other.first && self.last==other.last) {
+            if !(self.sum == other.sum && self.first == other.first && self.last == other.last) {
                 return false;
             }
             unsafe {
