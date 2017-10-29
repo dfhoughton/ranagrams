@@ -36,7 +36,7 @@ your home directory for a file called .anagrams-dictionary.txt.
 In many cases this a simple phrase will have hundreds of thousands or millions
 of phrases, setting aside permutations. The phrase "rotten apple", for example,
 with a fairly ordinary dictionary of of 109,217 English words, produces 2695
-anagrams, setting aside permutations. Here are 10:
+anagrams. Here are 10:
 
   pone prattle
   plea portent
@@ -64,7 +64,6 @@ Discard from your word list particular words.
 --include
 
 Include only those phrases which include particular words.
-This is the second line.
 
 --limit
 
