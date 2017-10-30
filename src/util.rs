@@ -62,7 +62,7 @@ pub struct CharCount {
     pub counts: Vec<usize>, // TODO pub only for debugging purposes
     pub sum: usize,
     pub first: usize, // lowest index with any characters
-    pub last: usize,  // highest index with any characters
+    pub last: usize,  // highest index (+1) with any characters
     hash: u128,       // for quick hashing and equality
 }
 
@@ -75,7 +75,7 @@ impl PartialEq for CharCount {
                 return false;
             }
             unsafe {
-                for i in 0..(self.last + 1) {
+                for i in 0..self.last {
                     if *self.counts.get_unchecked(i) != *other.counts.get_unchecked(i) {
                         return false;
                     }
@@ -112,7 +112,7 @@ impl CharCount {
         }
         let mut accumulator: u128 = 0;
         unsafe {
-            for i in self.first..(self.last + 1) {
+            for i in self.first..self.last {
                 let c = self.counts.get_unchecked(i);
                 if c > &0 {
                     let p = powers_of_ten.get_unchecked(i);
@@ -128,27 +128,27 @@ impl CharCount {
         self.sum -= 1;
         if self.sum == 0 {
             self.first = 0;
-            self.last = 0;
-        } else if self.first != self.last {
+            self.last = 1;
+        } else if self.first + 1 != self.last {
             if self.sum == 1 {
-                for j in self.first..(self.last + 1) {
+                for j in self.first..self.last {
                     if *self.counts.get_unchecked(j) > 0 {
                         self.first = j;
-                        self.last = j;
+                        self.last = j + 1;
                         break;
                     }
                 }
             } else if i == self.first {
-                for j in self.first..(self.last + 1) {
+                for j in self.first..self.last {
                     if *self.counts.get_unchecked(j) > 0 {
                         self.first = j;
                         break;
                     }
                 }
-            } else if i == self.last {
-                for j in (self.first..(self.last + 1)).rev() {
+            } else if i + 1 == self.last {
+                for j in (self.first..self.last).rev() {
                     if *self.counts.get_unchecked(j) > 0 {
-                        self.last = j;
+                        self.last = j + 1;
                         break;
                     }
                 }
@@ -194,17 +194,17 @@ impl CharCount {
             }
         }
         self.first = first;
-        self.last = last;
+        self.last = last + 1;
     }
     unsafe fn increment(&mut self, i: usize) {
         *self.counts.get_unchecked_mut(i) += 1;
         if self.sum == 0 {
             self.first = i;
-            self.last = i;
+            self.last = i + 1;
         } else if i < self.first {
             self.first = i;
-        } else if i > self.last {
-            self.last = i;
+        } else if i >= self.last {
+            self.last = i + 1;
         }
         self.sum += 1;
     }
@@ -262,7 +262,7 @@ impl Translator {
             counts: vec![0; self.map.len()],
             sum: 0,
             first: 0,
-            last: 0,
+            last: 1,
             hash: 0,
         };
         for c in word.chars() {

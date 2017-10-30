@@ -209,7 +209,7 @@ impl Trie {
                 sort_char
             }
         };
-        for c in start..(cc.last + 1) {
+        for c in start..cc.last {
             if cc.has(c) {
                 if let Some(t) = node.get(c) {
                     let mut characters_remaining = cc.clone();
