@@ -20,10 +20,12 @@ impl CharSet {
     pub fn new(chars: &[usize]) -> CharSet {
         let mut contained = vec![false; chars.len()];
         let mut count = 0;
-        for i in 0..chars.len() {
-            if chars[i] > 0 {
-                contained[i] = true;
-                count += 1;
+        unsafe {
+            for i in 0..chars.len() {
+                if *chars.get_unchecked(i) > 0 {
+                    *contained.get_unchecked_mut(i) = true;
+                    count += 1;
+                }
             }
         }
         CharSet {
