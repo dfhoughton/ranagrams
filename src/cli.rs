@@ -167,6 +167,14 @@ alphabets up to 38 characters in size.
                 .conflicts_with("set"),
         )
         .arg(
+            Arg::with_name("min")
+                .short("m")
+                .long("minimum-word-length")
+                .takes_value(true)
+                .value_name("n")
+                .help("Words in anagrams must be at least this long"),
+        )
+        .arg(
             Arg::with_name("phrase")
                 .value_name("word")
                 .multiple(true)

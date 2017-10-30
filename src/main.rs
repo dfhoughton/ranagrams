@@ -45,7 +45,26 @@ fn main() {
     } else {
         0
     };
-    let trie = make_trie(&options);
+    let min_word_length = if options.is_present("min") {
+        match usize::from_str_radix(options.value_of("min").unwrap(), 10) {
+            Err(why) => panic!(
+                "could not parse minimum word length: {}\n\n{}",
+                why,
+                options.usage()
+            ),
+            Ok(min) => if min == 0 {
+                panic!(
+                    "minimum word length must be positive\n\n{}",
+                    options.usage()
+                )
+            } else {
+                min
+            },
+        }
+    } else {
+        1
+    };
+    let trie = make_trie(&options, min_word_length);
     let af = AnagramFun { root: trie };
 
     // create initial character count
@@ -131,7 +150,7 @@ fn main() {
     }
 }
 
-fn make_trie(opts: &ArgMatches) -> Trie {
+fn make_trie(opts: &ArgMatches, minimum_word_length: usize) -> Trie {
     let mut file = match File::open(opts.value_of("dictionary").unwrap()) {
         Err(_) => panic!("could not read dictionary:\n\n{}", opts.usage()),
         Ok(file) => file,
@@ -145,7 +164,10 @@ fn make_trie(opts: &ArgMatches) -> Trie {
         ),
         Ok(_) => (),
     }
-    let words: Vec<&str> = strings.lines().collect();
+    let words: Vec<&str> = strings
+        .lines()
+        .filter(|w| w.trim().len() >= minimum_word_length)
+        .collect();
     let translator = Translator::new(normalize, words.iter().map(|s| *s));
     let any_excluded = opts.is_present("exclude");
     let mut excluded = HashSet::new();
