@@ -16,11 +16,12 @@ FLAGS:
     -V, --version     Prints version information
 
 OPTIONS:
-    -d, --dictionary <file>    A line-delimited list of words usable in anagrams [default: /Users/houghton/.anagram-dictionary.txt]
-    -x, --exclude <word>...    Exclude this word from anagrams
-    -i, --include <word>...    Include this word in the anagrams
-    -l, --limit <n>            Only find this many anagrams
-    -t, --threads <n>          The number of threads to use during anagram collection [default: 8]
+    -d, --dictionary <file>          A line-delimited list of words usable in anagrams [default: /Users/houghton/.anagram-dictionary.txt]
+    -x, --exclude <word>...          Exclude this word from anagrams
+    -i, --include <word>...          Include this word in the anagrams
+    -l, --limit <n>                  Only find this many anagrams
+    -m, --minimum-word-length <n>    Words in anagrams must be at least this long
+    -t, --threads <n>                The number of threads to use during anagram collection [default: 8]
 
 ARGS:
     <word>...    The words for which you want an anagram
