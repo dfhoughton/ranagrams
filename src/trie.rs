@@ -79,18 +79,20 @@ impl Trie {
             let mut end = sorted_list.len();
             loop {
                 let delta = end - start;
+                unsafe {
                 if delta == 1 {
-                    return match Trie::compare_words(key, &sorted_list[start].0) {
+                    return match Trie::compare_words(key, &sorted_list.get_unchecked(start).0) {
                         Ordering::Less | Ordering::Equal => start,
                         _ => end,
                     };
                 }
                 let middle = start + delta / 2;
-                let middle_key = &sorted_list[middle].0;
-                match Trie::compare_words(middle_key, key) {
-                    Ordering::Less => start = middle,
-                    Ordering::Greater => end = middle,
-                    Ordering::Equal => return middle,
+                    let middle_key = &sorted_list.get_unchecked(middle).0;
+                    match Trie::compare_words(middle_key, key) {
+                        Ordering::Less => start = middle,
+                        Ordering::Greater => end = middle,
+                        Ordering::Equal => return middle,
+                    }
                 }
             }
         }
