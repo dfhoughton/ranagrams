@@ -51,16 +51,18 @@ impl Trie {
         }
     }
     // for comparing two sort keys
-    fn ge_key(a: &[usize], b: &[usize]) -> Ordering {
-        for (i, count) in a.iter().enumerate() {
-            if i == b.len() {
-                return Ordering::Greater;
-            }
-            let count2 = &b[i];
-            if count > count2 {
-                return Ordering::Greater;
-            } else if count < count2 {
-                return Ordering::Less;
+    fn compare_words(a: &[usize], b: &[usize]) -> Ordering {
+        unsafe {
+            for (i, count) in a.iter().enumerate() {
+                if i == b.len() {
+                    return Ordering::Greater;
+                }
+                let count2 = &b.get_unchecked(i);
+                if count > count2 {
+                    return Ordering::Greater;
+                } else if count < count2 {
+                    return Ordering::Less;
+                }
             }
         }
         if a.len() < b.len() {
@@ -78,14 +80,14 @@ impl Trie {
             loop {
                 let delta = end - start;
                 if delta == 1 {
-                    return match Trie::ge_key(key, &sorted_list[start].0) {
+                    return match Trie::compare_words(key, &sorted_list[start].0) {
                         Ordering::Less | Ordering::Equal => start,
                         _ => end,
                     };
                 }
                 let middle = start + delta / 2;
                 let middle_key = &sorted_list[middle].0;
-                match Trie::ge_key(middle_key, key) {
+                match Trie::compare_words(middle_key, key) {
                     Ordering::Less => start = middle,
                     Ordering::Greater => end = middle,
                     Ordering::Equal => return middle,
