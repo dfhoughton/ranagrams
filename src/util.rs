@@ -44,8 +44,9 @@ impl CharSet {
         }
     }
     unsafe fn rm(&mut self, i: usize) {
-        if *self.chars.get_unchecked(i) {
-            self.chars[i] = false;
+        let b = self.chars.get_unchecked_mut(i);
+        if *b {
+            *b = false;
             self.count -= 1;
         }
     }
@@ -87,9 +88,6 @@ impl Eq for CharCount {}
 
 impl Hash for CharCount {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        // if !self.hashed() {
-        //     panic!("should never be hashing counts without a calculated hash: {:?}", self)
-        // }
         self.hash.hash(state);
     }
 }
@@ -98,6 +96,7 @@ impl CharCount {
     pub fn hashed(&self) -> bool {
         self.hash > 0 || self.sum == 0
     }
+    // mostly just for debugging
     fn confirm_mutable(&self) {
         if self.hashed() {
             panic!("count should be mutable")
@@ -123,7 +122,6 @@ impl CharCount {
         self.hash = accumulator;
     }
     pub unsafe fn decrement(&mut self, i: usize) {
-        self.confirm_mutable();
         *self.counts.get_unchecked_mut(i) -= 1;
         self.sum -= 1;
         if self.sum == 0 {
