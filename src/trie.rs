@@ -5,6 +5,9 @@ use std::collections::HashMap;
 use std::cmp::Ordering;
 use rand::{Rng, StdRng};
 
+/// The magical boundary between words and numbers, a `Trie` wraps a `TrieNode`
+/// and various things used for stringification, destringification, and various
+/// caches and denormalizations.
 pub struct Trie {
     pub root: TrieNode,
     pub translator: Translator,
@@ -97,6 +100,11 @@ impl Trie {
             }
         }
     }
+    /// Produces the words, in their numeric representation, extractable from
+    /// a `CharCount` along with the residual `CharCount`s remaining after their
+    /// extraction. More precisely, it is those words sorting at or above the
+    /// order of the given sort key. The sort key ensures that only one
+    /// permutation of a given anagram is produced.
     pub fn words_for(
         &self,
         cc: Arc<CharCount>,
@@ -137,6 +145,7 @@ impl Trie {
         }
         filtered
     }
+    // a repeated bit factored out of words_for (necessary after adding caching)
     fn non_caching_words_for(
         &self,
         cc: &CharCount,
@@ -169,6 +178,8 @@ impl Trie {
             self.empty_list.clone()
         }
     }
+    /// Convert a `ToDo` from a linked list of words in numeric representation
+    /// to a single `String` representing an anagram.
     pub fn stringify(&self, todo: ToDo) -> String {
         let mut s = String::new();
         let words = todo.words();
@@ -182,8 +193,9 @@ impl Trie {
         }
         s
     }
-
-    pub fn walk(
+    // walk the trie, extending an extraction as far as possible from the given
+    // `TrieNode`
+    fn walk(
         node: &TrieNode,
         seed: &mut Vec<usize>,
         cc: &CharCount,
@@ -237,7 +249,10 @@ impl Trie {
         }
     }
 }
-
+/// A node in a trie (re`trie`val tree) representing a word list. A `TrieNode`
+/// contains a boolean indicating whether it is the end of a word and a list
+/// of child nodes representing possible continuations of the prefix represented
+/// by the node itself.
 #[derive(PartialEq, Debug)]
 pub struct TrieNode {
     pub terminal: bool,
@@ -275,7 +290,9 @@ impl TrieNode {
         self.children.get(i).and_then(|o| o.as_ref())
     }
 }
-
+/// A disposable stage that launches a `TrieNode`. `TrieNodeBuilder`s maintain
+/// a mutable state and functionality that are not necessary for a completed
+/// `TrieNode`.
 #[derive(Clone)]
 pub struct TrieNodeBuilder {
     terminal: bool,

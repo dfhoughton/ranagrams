@@ -4,12 +4,16 @@ use std::cmp;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
+/// Messages the monitor thread sends to worker threads to control their
+/// activity.
 #[derive(PartialEq, Eq, Debug)]
 enum BossMessage {
     Go,
     Stop,
 }
 
+/// Messages worker threads send to the monitor thread to allow it to keep
+/// track fo their state and distribute work.
 #[derive(PartialEq, Eq, Debug)]
 enum WorkerMessage {
     WakeUp,
@@ -17,11 +21,21 @@ enum WorkerMessage {
     Sleeping(usize), // usize is an id indicating the sleeper
 }
 
+/// The resume (trait) required of worker threads who wish to work in the
+/// factory. The general pattern of work is that workers inspect an item (`I`)
+/// to see whether it can be shipped. If not, they improve it, making some
+/// number of improved items.
 pub trait WorkerFun<I: Send + 'static>: Send + Sync + 'static {
     fn improve(&self, I) -> Vec<I>;
     fn inspect(&self, &I) -> bool;
 }
 
+/// Start the factory going. The `roster` is the number of workers. The
+/// `slop_factor` is multiplied by this number to determine the number of
+/// items to keep in reserve for workers that run low in their personal work
+/// queues. The `materials` are the initial items requiring improvement. The
+/// `fun` provides the specifications for what the workers will do to improve
+/// or inspect their work.
 pub fn manufacture<I, W>(
     roster: usize,
     slop_factor: usize,

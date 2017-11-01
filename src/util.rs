@@ -3,13 +3,16 @@ use std::sync::Arc;
 use std::cmp::{Eq, PartialEq};
 use std::hash::{Hash, Hasher};
 
+/// Actually, there are currently no tests. The proof is in the pudding.
 #[cfg(test)]
 mod tests {
     #[test]
     fn it_works() {}
 }
 
-// a set-ish representation of the characters in a CharCount
+/// A set-ish representation of the characters in a `CharCount`. A `CharSet`
+/// is a record of the *types* of characters present without regard to their
+/// count.
 #[derive(Debug, Clone)]
 pub struct CharSet {
     pub chars: Vec<bool>,
@@ -57,6 +60,12 @@ impl CharSet {
     }
 }
 
+/// The fundamental representation of the undigested bit of a phrase in
+/// anagram calculation, a `CharCount` keeps track of the characters still
+/// looking for a foster word. To accelerate processing, they also cache
+/// the first character offset with a non-zero count, the last such offset,
+/// the sum of their counts, and a checksum sufficient for hashing and
+/// identification.
 #[derive(Clone, Debug)]
 pub struct CharCount {
     pub counts: Vec<usize>, // TODO pub only for debugging purposes
@@ -222,7 +231,10 @@ impl CharCount {
         self.sum == 0
     }
 }
-
+/// A `Translator` converts between alphabetic and numeric representations of
+/// words. For anagram calculation words are treated as pure numeric sequences.
+/// The translator converts back and forth and also keeps track of character
+/// frequences in order to produce a dense trie representation of a word list.
 pub struct Translator {
     map: HashMap<char, usize>,
     map_back: HashMap<usize, char>,
@@ -301,7 +313,10 @@ impl Translator {
         return Some(translation);
     }
 }
-
+/// A function that strips away characters of no interest -- spaces and
+/// punctuation characters, generally -- and removes unimportant distinctions
+/// like case. If one wishes to convert this code to a new alphabet this is
+/// likely the only things that needs fixing.
 pub fn normalize(word: &str) -> String {
     word.trim()
         .to_lowercase()
@@ -309,7 +324,10 @@ pub fn normalize(word: &str) -> String {
         .filter(|c| c.is_alphabetic())
         .collect::<String>()
 }
-
+/// The representation of a partially processed phrase working its way through
+/// anagram discovery. `ToDo`s are a linked list keeping track of words already
+/// found plus a `CharCount` keeping track of the characters yet to be
+/// processed.
 #[derive(Debug)]
 pub struct ToDo {
     parent: Option<Arc<ToDo>>,
