@@ -84,7 +84,7 @@ anagrams.
 
 Text Normalization
 
-Rana attempst to strip away certain characters from your word list and all
+Rana attempts to strip away certain characters from your word list and all
 other textual input, so it will treat "c-a-t" and " C A T " the same as "cat".
 Here is the actual code that does this:
 
