@@ -11,16 +11,16 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> ArgMatches<'a> {
     if let Some(file) = dictionary {
         dictionary_argument = dictionary_argument.default_value(file);
     }
-    App::new("ranagrams")
+    App::new("rana")
         .version("0.1")
         .author("David F. Houghton <dfhoughton@gmail.com>")
         .about("Finds anagrams of a phrase")
         .after_help(
-            r#"Ranagrams generates all the possible anagrams from a given phrase and
-dictionary. Note "given some dictionary." Ranagrams does not have a word list
+            r#"Rana generates all the possible anagrams from a given phrase and
+dictionary. Note "given some dictionary." Rana does not have a word list
 built in. You must tell it what words it may use in an anagram. I have made
 myself such a list out of a list of English words I found on the Internet from
-which I delted all the words likely to offend people. By default ranagrams will
+which I delted all the words likely to offend people. By default rana will
 look in your home directory for a file called .anagrams-dictionary.txt.
 
 In many cases a simple phrase will have hundreds of thousands or millions of
@@ -40,7 +40,7 @@ anagrams. Here are 10:
   poler patent
 
 Because so many anagrams are available, you are likely to want to focus your
-search. Ranagrams provides several options to facilitate this.
+search. Rana provides several options to facilitate this.
 
 --words-in
 
@@ -69,22 +69,22 @@ many thousands of results. This is particularly useful when paired with --limit.
 
 Caching and Threads
 
-Ranagrams by default uses as many processing threads as there are cores on your
+Rana by default uses as many processing threads as there are cores on your
 machine. Generally this is what you want, but if you've got a lot of other
 things going on, you can limit the number of available threads to reduce the
 load your kernel has to deal with.
 
-Ranagrams also uses a dynamic programming algorithm to reduce the complexity of
+Rana also uses a dynamic programming algorithm to reduce the complexity of
 finding algorithms for large phrases. This is probably unnecessary for short
-phrases, though ranagrams provides no lower limit. For larger phrases, like the
+phrases, though rana provides no lower limit. For larger phrases, like the
 complete alphabet, the cache used by the dynamic programming algorithm may grow
-so large that the process crashes. If you turn off the cache ranagrams will use
+so large that the process crashes. If you turn off the cache rana will use
 a constant amount of memory, though it may take considerably longer to find all
 anagrams.
 
 Text Normalization
 
-Ranagrams attempst to strip away certain characters from your word list and all
+Rana attempst to strip away certain characters from your word list and all
 other textual input, so it will treat "c-a-t" and " C A T " the same as "cat".
 Here is the actual code that does this:
 
@@ -97,7 +97,7 @@ Here is the actual code that does this:
     }
 
 I have not tested what this will do for something like ß or Í. You may want to
-normalize the text yourself before you give it to ranagrams.
+normalize the text yourself before you give it to rana.
 
 NOTE:
 
