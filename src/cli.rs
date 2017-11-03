@@ -136,7 +136,6 @@ alphabets up to 38 characters in size.
                 .takes_value(true)
                 .multiple(true)
                 .number_of_values(1)
-                .conflicts_with("set"),
         )
         .arg(
             Arg::with_name("exclude")

@@ -1,6 +1,6 @@
 [package]
 name = "ranagrams"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["dfhoughton <dfhoughton@gmail.com>","jwmhjwmh@gmail.com"]
 description= "anagram discovery tool"
 homepage = "https://github.com/dfhoughton/ranagrams"
