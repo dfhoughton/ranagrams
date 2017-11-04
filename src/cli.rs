@@ -1,7 +1,7 @@
 extern crate clap;
-use self::clap::{App, Arg, ArgMatches};
+use self::clap::{App, Arg};
 
-pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> ArgMatches<'a> {
+pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
     let mut dictionary_argument = Arg::with_name("dictionary")
         .short("d")
         .long("dictionary")
@@ -13,10 +13,89 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> ArgMatches<'a> {
     }
     App::new("rana")
         .version("0.1")
-        .author("David F. Houghton <dfhoughton@gmail.com>")
+        .author("David F. Houghton <dfhoughton@gmail.com>, jwmhjwmh@gmail.com")
         .about("Finds anagrams of a phrase")
-        .after_help(
-            r#"Rana generates all the possible anagrams from a given phrase and
+        .arg(dictionary_argument)
+        .arg(
+            Arg::with_name("set")
+                .short("w")
+                .long("words-in")
+                .help("Returns the set of words composable from the letters in the input phrase"),
+        )
+        .arg(
+            Arg::with_name("include")
+                .short("i")
+                .long("include")
+                .value_name("word")
+                .help("Include this word in the anagrams")
+                .takes_value(true)
+                .multiple(true)
+                .number_of_values(1),
+        )
+        .arg(
+            Arg::with_name("exclude")
+                .short("x")
+                .long("exclude")
+                .value_name("word")
+                .help("Exclude this word from anagrams")
+                .takes_value(true)
+                .multiple(true)
+                .number_of_values(1),
+        )
+        .arg(
+            Arg::with_name("threads")
+                .short("t")
+                .long("threads")
+                .takes_value(true)
+                .default_value(cpus)
+                .value_name("n")
+                .help("The number of threads to use during anagram collection"),
+        )
+        .arg(
+            Arg::with_name("limit")
+                .short("l")
+                .long("limit")
+                .takes_value(true)
+                .value_name("n")
+                .help("Only find this many anagrams")
+                .conflicts_with("set"),
+        )
+        .arg(
+            Arg::with_name("min")
+                .short("m")
+                .long("minimum-word-length")
+                .takes_value(true)
+                .value_name("n")
+                .help("Words in anagrams must be at least this long"),
+        )
+        .arg(
+            Arg::with_name("phrase")
+                .value_name("word")
+                .multiple(true)
+                .required_unless("long-help")
+                .help("The words for which you want an anagram"),
+        )
+        .arg(
+            Arg::with_name("no_cache")
+                .short("C")
+                .long("no-cache")
+                .help("Do not cache partial results (this saves memory and costs speed)"),
+        )
+        .arg(
+            Arg::with_name("random")
+                .short("r")
+                .long("random")
+                .help("(Partially) shuffle order of discovery"),
+        )
+        .arg(
+            Arg::with_name("long-help")
+                .long("help-long")
+                .help("Prints *detailed* help information"),
+        )
+}
+
+pub fn long_help() -> String {
+    r#"Rana generates all the possible anagrams from a given phrase and
 dictionary. Note "given some dictionary." Rana does not have a word list
 built in. You must tell it what words it may use in an anagram. I have made
 myself such a list out of a list of English words I found on the Internet from
@@ -28,16 +107,16 @@ anagrams, setting aside permutations. The phrase "rotten apple", for example,
 with a fairly ordinary dictionary of of 109,217 English words, produces 2695
 anagrams. Here are 10:
 
-  pone prattle
-  plea portent
-  pole pattern
-  portent pale
-  platter pone
-  planter poet
-  potent paler
-  porn palette
-  pron palette
-  poler patent
+    pone prattle
+    plea portent
+    pole pattern
+    portent pale
+    platter pone
+    planter poet
+    potent paler
+    porn palette
+    pron palette
+    poler patent
 
 Because so many anagrams are available, you are likely to want to focus your
 search. Rana provides several options to facilitate this.
@@ -118,79 +197,5 @@ before you encounter this collision.
 
 Another consideration with caching is that this scheme can only accommodate
 alphabets up to 38 characters in size.
-        "#,
-        )
-        .arg(dictionary_argument)
-        .arg(
-            Arg::with_name("set")
-                .short("w")
-                .long("words-in")
-                .help("Returns the set of words composable from the letters in the input phrase"),
-        )
-        .arg(
-            Arg::with_name("include")
-                .short("i")
-                .long("include")
-                .value_name("word")
-                .help("Include this word in the anagrams")
-                .takes_value(true)
-                .multiple(true)
-                .number_of_values(1)
-        )
-        .arg(
-            Arg::with_name("exclude")
-                .short("x")
-                .long("exclude")
-                .value_name("word")
-                .help("Exclude this word from anagrams")
-                .takes_value(true)
-                .multiple(true)
-                .number_of_values(1),
-        )
-        .arg(
-            Arg::with_name("threads")
-                .short("t")
-                .long("threads")
-                .takes_value(true)
-                .default_value(cpus)
-                .value_name("n")
-                .help("The number of threads to use during anagram collection"),
-        )
-        .arg(
-            Arg::with_name("limit")
-                .short("l")
-                .long("limit")
-                .takes_value(true)
-                .value_name("n")
-                .help("Only find this many anagrams")
-                .conflicts_with("set"),
-        )
-        .arg(
-            Arg::with_name("min")
-                .short("m")
-                .long("minimum-word-length")
-                .takes_value(true)
-                .value_name("n")
-                .help("Words in anagrams must be at least this long"),
-        )
-        .arg(
-            Arg::with_name("phrase")
-                .value_name("word")
-                .multiple(true)
-                .required(true)
-                .help("The words for which you want an anagram"),
-        )
-        .arg(
-            Arg::with_name("no_cache")
-                .short("C")
-                .long("no-cache")
-                .help("Do not cache partial results (this saves memory and costs speed)"),
-        )
-        .arg(
-            Arg::with_name("random")
-                .short("r")
-                .long("random")
-                .help("(Partially) shuffle order of discovery"),
-        )
-        .get_matches()
+"#.to_string()
 }

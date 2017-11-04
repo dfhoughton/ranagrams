@@ -15,6 +15,7 @@ extern crate rand;
 use rand::StdRng;
 extern crate num_cpus;
 use std::ops::Deref;
+use std::process;
 
 fn main() {
     // parse the options
@@ -25,21 +26,32 @@ fn main() {
     } else {
         None
     };
-    let options = cli::parse(&cpus, default_dir.as_ref().map(String::deref));
+    let options = cli::parse(&cpus, default_dir.as_ref().map(String::deref)).get_matches();
+    if options.is_present("long-help") {
+        cli::parse(&cpus, default_dir.as_ref().map(String::deref))
+            .print_help()
+            .ok();
+        println!("\n\n{}", cli::long_help());
+        process::exit(0)
+    }
     let threads = match usize::from_str_radix(options.value_of("threads").unwrap(), 10) {
         Err(why) => {
-            panic!("error parsing thread count: {}\n\n{}", why, options.usage());
+            eprintln!("error parsing thread count: {}\n\n{}", why, options.usage());
+            process::exit(1)
         }
         Ok(threads) => threads,
     };
     let use_limit = options.is_present("limit");
     let limit = if use_limit {
         match usize::from_str_radix(options.value_of("limit").unwrap(), 10) {
-            Err(why) => panic!(
-                "could not parse anagram limit: {}\n\n{}",
-                why,
-                options.usage()
-            ),
+            Err(why) => {
+                eprintln!(
+                    "could not parse anagram limit: {}\n\n{}",
+                    why,
+                    options.usage()
+                );
+                process::exit(1)
+            }
             Ok(limit) => limit,
         }
     } else {
@@ -47,16 +59,20 @@ fn main() {
     };
     let min_word_length = if options.is_present("min") {
         match usize::from_str_radix(options.value_of("min").unwrap(), 10) {
-            Err(why) => panic!(
-                "could not parse minimum word length: {}\n\n{}",
-                why,
-                options.usage()
-            ),
+            Err(why) => {
+                eprintln!(
+                    "could not parse minimum word length: {}\n\n{}",
+                    why,
+                    options.usage()
+                );
+                process::exit(1)
+            }
             Ok(min) => if min == 0 {
-                panic!(
+                eprintln!(
                     "minimum word length must be positive\n\n{}",
                     options.usage()
-                )
+                );
+                process::exit(1)
             } else {
                 min
             },
@@ -152,16 +168,22 @@ fn main() {
 
 fn make_trie(opts: &ArgMatches, minimum_word_length: usize) -> Trie {
     let mut file = match File::open(opts.value_of("dictionary").unwrap()) {
-        Err(_) => panic!("could not read dictionary:\n\n{}", opts.usage()),
+        Err(_) => {
+            eprintln!("could not read dictionary:\n\n{}", opts.usage());
+            process::exit(1)
+        }
         Ok(file) => file,
     };
     let mut strings = String::new();
     match file.read_to_string(&mut strings) {
-        Err(why) => panic!(
-            "could not read words from dictionary: {}\n\n{}",
-            why,
-            opts.usage()
-        ),
+        Err(why) => {
+            eprintln!(
+                "could not read words from dictionary: {}\n\n{}",
+                why,
+                opts.usage()
+            );
+            process::exit(1)
+        }
         Ok(_) => (),
     }
     let words: Vec<&str> = strings

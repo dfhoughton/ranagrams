@@ -3,20 +3,21 @@ yet another anagram algorithm, this time in Rust
 
 ## Usage
 
-The text provided by `--help`.
+The text provided by `--help-long`.
 ```
 USAGE:
     rana [FLAGS] [OPTIONS] <word>
 
 FLAGS:
-    -h, --help        Prints help information
-    -C, --no-cache    Do not cache partial results (this saves memory and costs speed)
-    -r, --random      (Partially) shuffle order of discovery
-    -w, --words-in    Returns the set of words composable from the letters in the input phrase
-    -V, --version     Prints version information
+    -h, --help         Prints help information
+        --help-long    Prints *detailed* help information
+    -C, --no-cache     Do not cache partial results (this saves memory and costs speed)
+    -r, --random       (Partially) shuffle order of discovery
+    -w, --words-in     Returns the set of words composable from the letters in the input phrase
+    -V, --version      Prints version information
 
 OPTIONS:
-    -d, --dictionary <file>          A line-delimited list of words usable in anagrams [default: /Users/houghton/.anagram-dictionary.txt]
+    -d, --dictionary <file>          A line-delimited list of words usable in anagrams [default: ~/.anagram-dictionary.txt]
     -x, --exclude <word>...          Exclude this word from anagrams
     -i, --include <word>...          Include this word in the anagrams
     -l, --limit <n>                  Only find this many anagrams
@@ -30,7 +31,7 @@ Rana generates all the possible anagrams from a given phrase and
 dictionary. Note "given some dictionary." Rana does not have a word list
 built in. You must tell it what words it may use in an anagram. I have made
 myself such a list out of a list of English words I found on the Internet from
-which I deleted all the words likely to offend people. By default rana will
+which I delted all the words likely to offend people. By default rana will
 look in your home directory for a file called .anagrams-dictionary.txt.
 
 In many cases a simple phrase will have hundreds of thousands or millions of
@@ -38,16 +39,16 @@ anagrams, setting aside permutations. The phrase "rotten apple", for example,
 with a fairly ordinary dictionary of of 109,217 English words, produces 2695
 anagrams. Here are 10:
 
-  pone prattle
-  plea portent
-  pole pattern
-  portent pale
-  platter pone
-  planter poet
-  potent paler
-  porn palette
-  pron palette
-  poler patent
+    pone prattle
+    plea portent
+    pole pattern
+    portent pale
+    platter pone
+    planter poet
+    potent paler
+    porn palette
+    pron palette
+    poler patent
 
 Because so many anagrams are available, you are likely to want to focus your
 search. Rana provides several options to facilitate this.
@@ -143,14 +144,20 @@ tea
 
 ## Installation
 
-This is not yet up on crates.io. To install it you will need to install the
-nightly version of Rust (I believe), clone this project or copy it to your
-machine, and run `cargo build --release` in its directory. This will produce an
-executable called `target/release/rana`. To use the executable you will
-need a word list. I have not checked mine in. You can find word lists on-line if
-you simply search for "word list". The list will need to have all the forms you
-are interested in. Rana cannot infer "cats" from "cat", much less "brought"
-from "bring".
+Rana is available on `crates.io`, so you can install it with a
+
+    cargo install ranagrams
+
+You can also clone or copy this project to your machine and run
+`cargo build --release` in its directory. This will produce an executable called
+`target/release/rana`. To use the executable you will need a word list. I have
+not checked mine in. You may have a file named something like
+`/usr/share/dict/words` on your computer. If so, this will work, though it may
+have every individual letter in it along with other words, which means if you
+use it as your dictionary that `c a t` will be an anagram of `cat`. You can find
+word lists on-line if you simply search for "word list". The list will need to
+have all the forms you are interested in. Rana cannot infer "cats" from "cat",
+much less "brought" from "bring".
 
 ## History and Credits
 
