@@ -97,16 +97,10 @@ fn main() {
     for word in options.values_of("phrase").unwrap() {
         if let Some(usizes) = af.root.translator.translate(word) {
             if !cc.add(usizes) {
-                panic!(
-                    "{} contains characters not in any word in the dictionary",
-                    word
-                );
+                dictionary_error(word, &af)
             }
         } else {
-            panic!(
-                "{} contains characters not in any word in the dictionary",
-                word
-            );
+            dictionary_error(word, &af)
         }
     }
     // subtract the words to include
@@ -115,20 +109,24 @@ fn main() {
     if prefixed {
         for word in options.values_of("include").unwrap() {
             if let Some(usizes) = af.root.translator.translate(word) {
-                if cc.subtract(usizes) {
-                    prefix.push_str(word);
-                    prefix.push(' ');
-                } else {
-                    panic!(
-                        "{} contains characters not present in the input phrase",
-                        word
-                    );
+                match cc.subtract(usizes) {
+                    Some((i, copy)) => {
+                        let normalized = af.root.translator.etalsnart(&copy).unwrap();
+                        eprintln!(
+                            "attempt to use unavailable character in {}:\n\n\t{}-->{}",
+                            &normalized,
+                            &normalized[0..i],
+                            &normalized[i..]
+                        );
+                        process::exit(1)
+                    }
+                    None => {
+                        prefix.push_str(word);
+                        prefix.push(' ');
+                    }
                 }
             } else {
-                panic!(
-                    "{} contains characters not in any word in the dictionary",
-                    word
-                );
+                dictionary_error(word, &af)
             }
         }
     }
@@ -169,6 +167,17 @@ fn main() {
             }
         }
     }
+}
+
+fn dictionary_error(word: &str, af: &AnagramFun) -> ! {
+    let (good, bad) = af.root.translator.unfamiliar_character(word);
+    eprintln!(
+        "character in {} not present in any word in dictionary:\n\n\t{}-->{}",
+        word,
+        good,
+        bad
+    );
+    process::exit(1)
 }
 
 fn make_trie(opts: &ArgMatches, minimum_word_length: usize) -> Trie {

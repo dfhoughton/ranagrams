@@ -176,18 +176,19 @@ impl CharCount {
         }
         true
     }
-    pub fn subtract(&mut self, word: Vec<usize>) -> bool {
-        self.confirm_mutable();
-        for i in word {
-            if i > self.counts.len() && self.counts[i] == 0 {
-                return false;
+    pub fn subtract(&mut self, word: Vec<usize>) -> Option<(usize, Vec<usize>)> {
+        // self.confirm_mutable();
+        let copy = word.clone();
+        for (idx, &i) in word.iter().enumerate() {
+            if i >= self.counts.len() || self.counts[i] == 0 {
+                return Some((idx, copy));
             }
             unsafe {
                 *self.counts.get_unchecked_mut(i) -= 1;
             }
             self.sum -= 1;
         }
-        true
+        None
     }
     pub fn set_limits(&mut self) {
         let mut looking_for_first = true;
@@ -311,6 +312,28 @@ impl Translator {
             }
         }
         return Some(translation);
+    }
+    /// for construction of an error message when translate fails
+    pub fn unfamiliar_character(&self, word: &str) -> (String, String) {
+        let mut s1 = String::new();
+        let mut s2 = String::new();
+        let mut broken = false;
+        for c in (self.normalizer)(word).chars() {
+            if broken {
+                s2.push(c);
+            } else {
+                match self.map.get(&c) {
+                    Some(_) => {
+                        s1.push(c);
+                    }
+                    None => {
+                        broken = true;
+                        s2.push(c);
+                    }
+                }
+            }
+        }
+        (s1, s2)
     }
 }
 /// A function that strips away characters of no interest -- spaces and
