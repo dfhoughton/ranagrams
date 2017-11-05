@@ -159,7 +159,7 @@ impl Trie {
             &mut seed,
             cc,
             &mut set,
-            1,
+            0,
             sort_key,
             !self.use_cache,
             &mut paired,
@@ -214,11 +214,11 @@ impl Trie {
         }
         let mut sorting = sort;
         let mut sort_char = 0;
-        let start = if !sort || level > sort_key.len() {
+        let start = if !sort || level >= sort_key.len() {
             sorting = false;
             cc.first
         } else {
-            sort_char = sort_key[level - 1];
+            sort_char = sort_key[level];
             if sort_char < cc.first {
                 cc.first
             } else {
