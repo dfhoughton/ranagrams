@@ -34,12 +34,17 @@ fn main() {
         println!("\n\n{}", cli::long_help());
         process::exit(0)
     }
-    let threads = match usize::from_str_radix(options.value_of("threads").unwrap(), 10) {
-        Err(why) => {
-            eprintln!("error parsing thread count: {}\n\n{}", why, options.usage());
-            process::exit(1)
+    let threads = if options.is_present("set") {
+        // only one thread will ever be used
+        1
+    } else {
+        match usize::from_str_radix(options.value_of("threads").unwrap(), 10) {
+            Err(why) => {
+                eprintln!("error parsing thread count: {}\n\n{}", why, options.usage());
+                process::exit(1)
+            }
+            Ok(threads) => threads,
         }
-        Ok(threads) => threads,
     };
     let use_limit = options.is_present("limit");
     let limit = if use_limit {
