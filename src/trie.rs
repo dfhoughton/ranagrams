@@ -109,6 +109,7 @@ impl Trie {
         &self,
         cc: Arc<CharCount>,
         sort_key: &[usize],
+        all_words: &bool,
     ) -> Vec<(Arc<Vec<usize>>, Arc<CharCount>)> {
         let list = if self.use_cache {
             let hashed = if !cc.hashed() {
@@ -126,7 +127,7 @@ impl Trie {
             if let Some(list) = cached {
                 list.clone()
             } else {
-                let list = self.non_caching_words_for(&cc, sort_key);
+                let list = self.non_caching_words_for(&cc, sort_key, all_words);
                 {
                     let mut map = self.cache.write().unwrap();
                     map.insert(hashed, list.clone());
@@ -134,7 +135,7 @@ impl Trie {
                 list
             }
         } else {
-            self.non_caching_words_for(&cc, sort_key)
+            self.non_caching_words_for(&cc, sort_key, all_words)
         };
         let mut filtered = Vec::with_capacity(list.len());
         for &(ref word, ref counts) in &list[Trie::index(sort_key, &list)..] {
@@ -150,6 +151,7 @@ impl Trie {
         &self,
         cc: &CharCount,
         sort_key: &[usize],
+        all_words: &bool,
     ) -> Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>> {
         let mut paired = vec![];
         let mut seed = Vec::with_capacity(cc.sum);
@@ -164,7 +166,7 @@ impl Trie {
             !self.use_cache,
             &mut paired,
         );
-        if set.is_empty() {
+        if *all_words || set.is_empty() {
             Arc::new(
                 paired
                     .into_iter()
