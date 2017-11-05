@@ -108,11 +108,11 @@ impl CharCount {
         self.hash > 0 || self.sum == 0
     }
     // mostly just for debugging
-    fn confirm_mutable(&self) {
-        if self.hashed() {
-            panic!("count should be mutable")
-        }
-    }
+    // fn confirm_mutable(&self) {
+    //     if self.hashed() {
+    //         panic!("count should be mutable")
+    //     }
+    // }
     // calculate the hash -- this treats the character counts as a sort of
     // odometer and reads of the values as one big base-10 number
     pub fn calculate_hash(&mut self, powers_of_ten: &[u128]) {
