@@ -215,7 +215,7 @@ fn make_trie(opts: &ArgMatches, minimum_word_length: usize) -> Trie {
     Trie::new(
         t.build(),
         translator,
-        !opts.is_present("no_cache"),
+        !(opts.is_present("no_cache") || opts.is_present("set")),
         random,
         rng,
     )
