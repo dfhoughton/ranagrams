@@ -1,6 +1,6 @@
 [package]
 name = "ranagrams"
-version = "0.1.6"
+version = "0.1.7"
 authors = ["dfhoughton <dfhoughton@gmail.com>","jwmhjwmh@gmail.com"]
 description= "anagram discovery tool"
 homepage = "https://github.com/dfhoughton/ranagrams"
@@ -9,6 +9,9 @@ readme = "README.md"
 keywords = [ "anagram", "language", "game" ]
 categories = [ "games", "command-line-utilities" ]
 license = "GPL-2.0"
+
+[profile.release]
+panic = "abort"
 
 [[bin]]
 name = "rana"
