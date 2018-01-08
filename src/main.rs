@@ -34,6 +34,10 @@ fn main() {
         println!("\n\n{}", cli::long_help());
         process::exit(0)
     }
+    if options.is_present("ribbit") {
+        println!("\n{}", include_str!("../rana.txt"));
+        process::exit(0)
+    }
     let threads = if options.is_present("set") {
         // only one thread will ever be used
         1

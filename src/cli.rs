@@ -72,7 +72,7 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
             Arg::with_name("phrase")
                 .value_name("word")
                 .multiple(true)
-                .required_unless("long-help")
+                .required_unless_one(&["long-help", "ribbit"])
                 .help("The words for which you want an anagram"),
         )
         .arg(
@@ -91,6 +91,11 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
             Arg::with_name("long-help")
                 .long("help-long")
                 .help("Prints *detailed* help information"),
+        )
+        .arg(
+            Arg::with_name("ribbit")
+                .long("ribbit")
+                .help("ego sum"),
         )
 }
 

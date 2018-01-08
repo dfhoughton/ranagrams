@@ -13,6 +13,7 @@ FLAGS:
         --help-long    Prints *detailed* help information
     -C, --no-cache     Do not cache partial results (this saves memory and costs speed)
     -r, --random       (Partially) shuffle order of discovery
+        --ribbit       ego sum
     -w, --words-in     Returns the set of words composable from the letters in the input phrase
     -V, --version      Prints version information
 
