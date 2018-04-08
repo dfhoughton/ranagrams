@@ -91,7 +91,12 @@ fn main() {
     } else {
         1
     };
-    let trie = make_trie(&options, min_word_length);
+    let trie_word_length = if options.is_present("strict") {
+        1
+    } else {
+        min_word_length
+    };
+    let trie = make_trie(&options, trie_word_length);
     let af = AnagramFun { root: trie };
 
     // create initial character count
@@ -148,7 +153,9 @@ fn main() {
             for m in messages {
                 if let Some(todo) = m {
                     for w in mine.root.stringify(todo).split_whitespace() {
-                        found.insert(w.to_owned());
+                        if w.len() >= min_word_length {
+                            found.insert(w.to_owned());
+                        }
                     }
                 } else {
                     break;
