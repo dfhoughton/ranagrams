@@ -1,3 +1,5 @@
+//! command line specification and usage information
+
 extern crate clap;
 use self::clap::{App, Arg};
 
@@ -21,6 +23,12 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
                 .short("w")
                 .long("words-in")
                 .help("Returns the set of words composable from the letters in the input phrase"),
+        )
+        .arg(
+            Arg::with_name("strict")
+                .long("strict")
+                .requires("set")
+                .help("When finding --words-in, returns only words that occur in some anagram"),
         )
         .arg(
             Arg::with_name("include")
@@ -92,11 +100,7 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
                 .long("help-long")
                 .help("Prints *detailed* help information"),
         )
-        .arg(
-            Arg::with_name("ribbit")
-                .long("ribbit")
-                .help("ego sum"),
-        )
+        .arg(Arg::with_name("ribbit").long("ribbit").help("ego sum"))
 }
 
 pub fn long_help() -> String {

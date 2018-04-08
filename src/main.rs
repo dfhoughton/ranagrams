@@ -76,15 +76,17 @@ fn main() {
                 );
                 process::exit(1)
             }
-            Ok(min) => if min == 0 {
-                eprintln!(
-                    "minimum word length must be positive\n\n{}",
-                    options.usage()
-                );
-                process::exit(1)
-            } else {
-                min
-            },
+            Ok(min) => {
+                if min == 0 {
+                    eprintln!(
+                        "minimum word length must be positive\n\n{}",
+                        options.usage()
+                    );
+                    process::exit(1)
+                } else {
+                    min
+                }
+            }
         }
     } else {
         1
@@ -137,15 +139,37 @@ fn main() {
     cc.set_limits();
 
     if options.is_present("set") {
-        let sort_key = Vec::with_capacity(0);
-        let mut found: Vec<String> = af.root
-            .words_for(Arc::new(cc), &sort_key, &true)
-            .into_iter()
-            .map(|(chars, _)| af.root.translator.etalsnart(&chars).unwrap())
-            .collect();
-        found.sort();
-        for word in found {
-            println!("{}", word);
+        if options.is_present("strict") {
+            let materials = vec![ToDo::seed(cc)];
+            let noah = Arc::new(af);
+            let mine = noah.clone();
+            let (messages, _) = factory::manufacture(threads, 3, materials, noah);
+            let mut found = HashSet::new();
+            for m in messages {
+                if let Some(todo) = m {
+                    for w in mine.root.stringify(todo).split_whitespace() {
+                        found.insert(w.to_owned());
+                    }
+                } else {
+                    break;
+                }
+            }
+            let mut found = found.into_iter().collect::<Vec<_>>();
+            found.sort_unstable();
+            for w in found {
+                println!("{}", w);
+            }
+        } else {
+            let sort_key = Vec::with_capacity(0);
+            let mut found: Vec<String> = af.root
+                .words_for(Arc::new(cc), &sort_key, &true)
+                .into_iter()
+                .map(|(chars, _)| af.root.translator.etalsnart(&chars).unwrap())
+                .collect();
+            found.sort();
+            for word in found {
+                println!("{}", word);
+            }
         }
     } else {
         let mut count = 0;
@@ -177,9 +201,7 @@ fn dictionary_error(word: &str, af: &AnagramFun) -> ! {
     let (good, bad) = af.root.translator.unfamiliar_character(word);
     eprintln!(
         "character in {} not present in any word in dictionary:\n\n\t{}-->{}",
-        word,
-        good,
-        bad
+        word, good, bad
     );
     process::exit(1)
 }
