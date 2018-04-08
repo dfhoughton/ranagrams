@@ -100,7 +100,7 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
                 .long("help-long")
                 .help("Prints *detailed* help information"),
         )
-        .arg(Arg::with_name("ribbit").long("ribbit").help("ego sum"))
+        .arg(Arg::with_name("ribbit").long("ribbit").help("Ego sum"))
 }
 
 pub fn long_help() -> String {
