@@ -38,7 +38,7 @@ fn main() {
         println!("\n{}", include_str!("../rana.txt"));
         process::exit(0)
     }
-    let threads = if options.is_present("set") {
+    let threads = if options.is_present("set") && !options.is_present("strict") {
         // only one thread will ever be used
         1
     } else {
