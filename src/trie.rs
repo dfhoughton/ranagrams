@@ -1,3 +1,5 @@
+//! efficient representation of word lists
+
 use std::mem::size_of;
 use util::{CharCount, CharSet, ToDo, Translator};
 use std::sync::{Arc, RwLock};
@@ -302,12 +304,16 @@ pub struct TrieNodeBuilder {
 }
 
 impl TrieNodeBuilder {
+    /// Begins a builder for a `TrieNode`. The initial state of a
+    /// `TrieNodeBuilder` represents an empty, non-terminal `TrieNode`.
     pub fn new() -> TrieNodeBuilder {
         TrieNodeBuilder {
             terminal: false,
             children: vec![],
         }
     }
+    /// Recursively compiles a `TrieNode` representing the state of this
+    /// `TrieNodeBuilder` and its children.
     pub fn build(self) -> TrieNode {
         let children = self.children
             .into_iter()
@@ -337,6 +343,7 @@ impl TrieNodeBuilder {
             unsafe { self.children.get_unchecked_mut(i) }
         }
     }
+    /// Adds a word to the trie.
     pub fn add(&mut self, word: &[usize]) {
         if word.is_empty() {
             self.terminal = true;

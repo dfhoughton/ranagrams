@@ -1,3 +1,5 @@
+//! thread model
+
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread::{self, Builder};
 use std::cmp;

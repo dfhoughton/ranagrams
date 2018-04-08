@@ -1,3 +1,6 @@
+//! collection of structs mediating between words and tries and representing
+//! intermediate states in the discovery of anagrams
+
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::cmp::{Eq, PartialEq};
