@@ -145,26 +145,29 @@ fn main() {
 
     if options.is_present("set") {
         if options.is_present("strict") {
-            let materials = vec![ToDo::seed(cc)];
+            let sort_key = Vec::with_capacity(0);
+            let mut found: Vec<String> = af.root
+                .words_for(Arc::new(cc.clone()), &sort_key, &true)
+                .into_iter()
+                .map(|(chars, _)| af.root.translator.etalsnart(&chars).unwrap())
+                .collect();
+            found.sort();
             let noah = Arc::new(af);
-            let mine = noah.clone();
-            let (messages, _) = factory::manufacture(threads, 3, materials, noah);
-            let mut found = HashSet::new();
-            for m in messages {
-                if let Some(todo) = m {
-                    for w in mine.root.stringify(todo).split_whitespace() {
-                        if w.len() >= min_word_length {
-                            found.insert(w.to_owned());
+            for word in found {
+                let noah = noah.clone();
+                if word.len() >= min_word_length {
+                    if let Some(usizes) = noah.clone().root.translator.translate(word.as_str()) {
+                        // can we make a least one anagram with the remainder after we subtract this word?
+                        let mut cc = cc.clone();
+                        cc.subtract(usizes.to_vec());
+                        let materials = vec![ToDo::seed(cc)];
+                        let (messages, kill_switch) = factory::manufacture(threads, 3, materials, noah);
+                        if let Some(_) = messages.iter().next() {
+                            kill_switch.store(true, Ordering::Relaxed);
+                            println!("{}", word);
                         }
                     }
-                } else {
-                    break;
                 }
-            }
-            let mut found = found.into_iter().collect::<Vec<_>>();
-            found.sort_unstable();
-            for w in found {
-                println!("{}", w);
             }
         } else {
             let sort_key = Vec::with_capacity(0);
