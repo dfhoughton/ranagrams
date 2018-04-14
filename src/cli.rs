@@ -133,7 +133,8 @@ search. Rana provides several options to facilitate this.
 --words-in
 
 This will list all the words in your dictionary composable from some subset of
-your phrase.
+your phrase. You likely want to add --strict to this, so you only get words that
+occur in *some* anagram. The --strict version is slower.
 
 --exclude
 
