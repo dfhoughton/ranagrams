@@ -9,13 +9,14 @@ USAGE:
     rana [FLAGS] [OPTIONS] <word>
 
 FLAGS:
+    -w, --words-in     Returns the set of words composable from the letters in the input phrase
+        --strict       When finding --words-in, returns only words that occur in some anagram
+        --prove        Like --strict, but emits a phrase proving this word occurs in an anagram.
     -h, --help         Prints help information
         --help-long    Prints *detailed* help information
     -C, --no-cache     Do not cache partial results (this saves memory and costs speed)
     -r, --random       (Partially) shuffle order of discovery
         --ribbit       Ego sum
-    -w, --words-in     Returns the set of words composable from the letters in the input phrase
-        --strict       When finding --words-in, returns only words that occur in some anagram
     -V, --version      Prints version information
 
 OPTIONS:
@@ -59,7 +60,10 @@ search. Rana provides several options to facilitate this.
 
 This will list all the words in your dictionary composable from some subset of
 your phrase. You likely want to add --strict to this, so you only get words that
-occur in *some* anagram. The --strict version is slower.
+occur in *some* anagram. The --strict version is slower. If you want to verify
+that each word listed has some anagram, you can add --prove, or replace --strict
+with --prove. This will cause rana to emit the remaining words in an anagram
+using the word in question.
 
 --exclude
 

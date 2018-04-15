@@ -144,7 +144,8 @@ fn main() {
     cc.set_limits();
 
     if options.is_present("set") {
-        if options.is_present("strict") {
+        if options.is_present("strict") || options.is_present("prove") {
+            let prove = options.is_present("prove");
             let sort_key = Vec::with_capacity(0);
             let mut found: Vec<String> = af.root
                 .words_for(Arc::new(cc.clone()), &sort_key, &true)
@@ -155,6 +156,7 @@ fn main() {
             let noah = Arc::new(af);
             for word in found {
                 let noah = noah.clone();
+                let mine = noah.clone();
                 if word.len() >= min_word_length {
                     if let Some(usizes) = noah.clone().root.translator.translate(word.as_str()) {
                         // can we make a least one anagram with the remainder after we subtract this word?
@@ -162,9 +164,12 @@ fn main() {
                         cc.subtract(usizes.to_vec());
                         let materials = vec![ToDo::seed(cc)];
                         let (messages, kill_switch) = factory::manufacture(threads, 3, materials, noah);
-                        if let Some(_) = messages.iter().next() {
+                        if let Some(Some(done)) = messages.iter().next() {
                             kill_switch.store(true, Ordering::Relaxed);
                             println!("{}", word);
+                            if prove {
+                                println!("\t{}", mine.root.stringify(done));
+                            }
                         }
                     }
                 }

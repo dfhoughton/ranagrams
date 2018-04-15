@@ -22,13 +22,22 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
             Arg::with_name("set")
                 .short("w")
                 .long("words-in")
+                .display_order(1)
                 .help("Returns the set of words composable from the letters in the input phrase"),
         )
         .arg(
             Arg::with_name("strict")
                 .long("strict")
                 .requires("set")
+                .display_order(2)
                 .help("When finding --words-in, returns only words that occur in some anagram"),
+        )
+        .arg(
+            Arg::with_name("prove")
+                .long("prove")
+                .requires("set")
+                .display_order(3)
+                .help("Like --strict, but emits a phrase proving this word occurs in an anagram."),
         )
         .arg(
             Arg::with_name("include")
@@ -37,6 +46,7 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
                 .value_name("word")
                 .help("Include this word in the anagrams")
                 .takes_value(true)
+                .empty_values(false)
                 .multiple(true)
                 .number_of_values(1),
         )
@@ -47,6 +57,7 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
                 .value_name("word")
                 .help("Exclude this word from anagrams")
                 .takes_value(true)
+                .empty_values(false)
                 .multiple(true)
                 .number_of_values(1),
         )
@@ -55,6 +66,7 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
                 .short("t")
                 .long("threads")
                 .takes_value(true)
+                .empty_values(false)
                 .default_value(cpus)
                 .value_name("n")
                 .help("The number of threads to use during anagram collection"),
@@ -64,6 +76,7 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
                 .short("l")
                 .long("limit")
                 .takes_value(true)
+                .empty_values(false)
                 .value_name("n")
                 .help("Only find this many anagrams")
                 .conflicts_with("set"),
@@ -73,6 +86,7 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
                 .short("m")
                 .long("minimum-word-length")
                 .takes_value(true)
+                .empty_values(false)
                 .value_name("n")
                 .help("Words in anagrams must be at least this long"),
         )
@@ -134,7 +148,10 @@ search. Rana provides several options to facilitate this.
 
 This will list all the words in your dictionary composable from some subset of
 your phrase. You likely want to add --strict to this, so you only get words that
-occur in *some* anagram. The --strict version is slower.
+occur in *some* anagram. The --strict version is slower. If you want to verify
+that each word listed has some anagram, you can add --prove, or replace --strict
+with --prove. This will cause rana to emit the remaining words in an anagram
+using the word in question.
 
 --exclude
 
