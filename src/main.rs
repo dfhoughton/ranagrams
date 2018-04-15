@@ -91,7 +91,7 @@ fn main() {
     } else {
         1
     };
-    let trie_word_length = if options.is_present("strict") {
+    let trie_word_length = if options.is_present("strict") || options.is_present("prove") {
         1
     } else {
         min_word_length
@@ -163,7 +163,8 @@ fn main() {
                         let mut cc = cc.clone();
                         cc.subtract(usizes.to_vec());
                         let materials = vec![ToDo::seed(cc)];
-                        let (messages, kill_switch) = factory::manufacture(threads, 3, materials, noah);
+                        let (messages, kill_switch) =
+                            factory::manufacture(threads, 3, materials, noah);
                         if let Some(Some(done)) = messages.iter().next() {
                             kill_switch.store(true, Ordering::Relaxed);
                             println!("{}", word);
