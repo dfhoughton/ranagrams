@@ -22,3 +22,4 @@ num_cpus = "1.9.0"
 mpmc = "0.1.5" # for queue
 clap = "2.32.0"
 rand = "0.4.5"
+dirs = "1"

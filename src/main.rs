@@ -1,14 +1,14 @@
 extern crate ranagrams;
-use ranagrams::util::{normalize, ToDo, Translator};
-use ranagrams::trie::{Trie, TrieNodeBuilder};
-use std::io::Read;
-use std::fs::File;
-use ranagrams::factory;
 use factory::WorkerFun;
 use ranagrams::cli;
-use std::sync::Arc;
-use std::sync::atomic::Ordering;
+use ranagrams::factory;
+use ranagrams::trie::{Trie, TrieNodeBuilder};
+use ranagrams::util::{normalize, ToDo, Translator};
 use std::collections::HashSet;
+use std::fs::File;
+use std::io::Read;
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
 extern crate clap;
 use clap::ArgMatches;
 extern crate rand;
@@ -16,11 +16,13 @@ use rand::StdRng;
 extern crate num_cpus;
 use std::ops::Deref;
 use std::process;
+extern crate dirs;
+use dirs::home_dir;
 
 fn main() {
     // parse the options
     let cpus = num_cpus::get().to_string();
-    let default_dir = if let Some(mut buf) = std::env::home_dir() {
+    let default_dir = if let Some(mut buf) = home_dir() {
         buf.push(".anagram-dictionary.txt");
         Some(buf.to_str().unwrap().to_string())
     } else {
@@ -100,7 +102,8 @@ fn main() {
     let af = AnagramFun { root: trie };
 
     // create initial character count
-    let mut cc = af.root
+    let mut cc = af
+        .root
         .translator
         .count(&normalize(""))
         .expect("no luck with the char count");
@@ -147,7 +150,8 @@ fn main() {
         if options.is_present("strict") || options.is_present("prove") {
             let prove = options.is_present("prove");
             let sort_key = Vec::with_capacity(0);
-            let mut found: Vec<String> = af.root
+            let mut found: Vec<String> = af
+                .root
                 .words_for(Arc::new(cc.clone()), &sort_key, &true)
                 .into_iter()
                 .map(|(chars, _)| af.root.translator.etalsnart(&chars).unwrap())
@@ -177,7 +181,8 @@ fn main() {
             }
         } else {
             let sort_key = Vec::with_capacity(0);
-            let mut found: Vec<String> = af.root
+            let mut found: Vec<String> = af
+                .root
                 .words_for(Arc::new(cc), &sort_key, &true)
                 .into_iter()
                 .map(|(chars, _)| af.root.translator.etalsnart(&chars).unwrap())
