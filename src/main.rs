@@ -99,22 +99,20 @@ fn main() {
         min_word_length
     };
     let trie = make_trie(&options, trie_word_length);
-    let af = AnagramFun { root: trie };
 
     // create initial character count
-    let mut cc = af
-        .root
+    let mut cc = trie
         .translator
         .count(&normalize(""))
         .expect("no luck with the char count");
     // add all the words to anagramize
     for word in options.values_of("phrase").unwrap() {
-        if let Some(usizes) = af.root.translator.translate(word) {
+        if let Some(usizes) = trie.translator.translate(word) {
             if !cc.add(usizes) {
-                dictionary_error(word, &af)
+                dictionary_error(word, &trie)
             }
         } else {
-            dictionary_error(word, &af)
+            dictionary_error(word, &trie)
         }
     }
     // subtract the words to include
@@ -122,10 +120,10 @@ fn main() {
     let mut prefix = String::new();
     if prefixed {
         for word in options.values_of("include").unwrap() {
-            if let Some(usizes) = af.root.translator.translate(word) {
+            if let Some(usizes) = trie.translator.translate(word) {
                 match cc.subtract(usizes) {
                     Some((i, copy)) => {
-                        let normalized = af.root.translator.etalsnart(&copy).unwrap();
+                        let normalized = trie.translator.etalsnart(&copy).unwrap();
                         eprintln!(
                             "attempt to use unavailable character in {}:\n\n\t{}-->{}",
                             &normalized,
@@ -140,11 +138,12 @@ fn main() {
                     }
                 }
             } else {
-                dictionary_error(word, &af)
+                dictionary_error(word, &trie)
             }
         }
     }
     cc.set_limits();
+    let af = AnagramFun { root: trie.optimize(cc.clone()) };
 
     if options.is_present("set") {
         if options.is_present("strict") || options.is_present("prove") {
@@ -268,11 +267,12 @@ fn words_in_word(word: &str, noah: Arc<AnagramFun>, threads: usize) -> Vec<Strin
         .expect("no luck with the char count");
     if let Some(usizes) = noah.root.translator.translate(word) {
         if !cc.add(usizes) {
-            dictionary_error(word, &noah)
+            dictionary_error(word, &noah.root)
         }
     } else {
-        dictionary_error(word, &noah)
+        dictionary_error(word, &noah.root)
     }
+    cc.set_limits();
     let materials = vec![ToDo::seed(cc)];
     let (messages, _) = factory::manufacture(threads, 3, materials, noah.clone());
     let mut words = vec![];
@@ -288,8 +288,8 @@ fn words_in_word(word: &str, noah: Arc<AnagramFun>, threads: usize) -> Vec<Strin
     words
 }
 
-fn dictionary_error(word: &str, af: &AnagramFun) -> ! {
-    let (good, bad) = af.root.translator.unfamiliar_character(word);
+fn dictionary_error(word: &str, trie: &Trie) -> ! {
+    let (good, bad) = trie.translator.unfamiliar_character(word);
     eprintln!(
         "character in {} not present in any word in dictionary:\n\n\t{}-->{}",
         word, good, bad

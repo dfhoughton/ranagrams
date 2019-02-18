@@ -1,11 +1,11 @@
 //! efficient representation of word lists
 
-use std::mem::size_of;
-use util::{CharCount, CharSet, ToDo, Translator};
-use std::sync::{Arc, RwLock};
-use std::collections::HashMap;
-use std::cmp::Ordering;
 use rand::{Rng, StdRng};
+use std::cmp::Ordering;
+use std::collections::HashMap;
+use std::mem::size_of;
+use std::sync::{Arc, RwLock};
+use util::{CharCount, CharSet, ToDo, Translator};
 
 /// The magical boundary between words and numbers, a `Trie` wraps a `TrieNode`
 /// and various things used for stringification, destringification, and various
@@ -182,6 +182,20 @@ impl Trie {
             self.empty_list.clone()
         }
     }
+    // create a new Trie containing only the words present in the given character count
+    pub fn optimize(self, cc: CharCount) -> Trie {
+        let mut tnb = TrieNodeBuilder::new();
+        for (word, _) in self.words_for(Arc::new(cc), &Vec::with_capacity(0), &true) {
+            tnb.add(&word);
+        }
+        Trie::new(
+            tnb.build(),
+            self.translator,
+            self.use_cache,
+            self.shuffle,
+            self.rng,
+        )
+    }
     /// Convert a `ToDo` from a linked list of words in numeric representation
     /// to a single `String` representing an anagram.
     pub fn stringify(&self, todo: ToDo) -> String {
@@ -315,7 +329,8 @@ impl TrieNodeBuilder {
     /// Recursively compiles a `TrieNode` representing the state of this
     /// `TrieNodeBuilder` and its children.
     pub fn build(self) -> TrieNode {
-        let children = self.children
+        let children = self
+            .children
             .into_iter()
             .map(|opt| opt.and_then(|c| Some(c.build())))
             .collect::<Vec<_>>()
