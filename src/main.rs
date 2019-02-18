@@ -4,7 +4,7 @@ use ranagrams::cli;
 use ranagrams::factory;
 use ranagrams::trie::{Trie, TrieNodeBuilder};
 use ranagrams::util::{normalize, ToDo, Translator};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Read;
 use std::sync::atomic::Ordering;
@@ -158,22 +158,63 @@ fn main() {
                 .collect();
             found.sort();
             let noah = Arc::new(af);
+            let mut cache: HashMap<String, String> = HashMap::new();
             for word in found {
-                let noah = noah.clone();
-                let mine = noah.clone();
                 if word.len() >= min_word_length {
-                    if let Some(usizes) = noah.clone().root.translator.translate(word.as_str()) {
-                        // can we make a least one anagram with the remainder after we subtract this word?
-                        let mut cc = cc.clone();
-                        cc.subtract(usizes.to_vec());
-                        let materials = vec![ToDo::seed(cc)];
-                        let (messages, kill_switch) =
-                            factory::manufacture(threads, 3, materials, noah);
-                        if let Some(Some(done)) = messages.iter().next() {
-                            kill_switch.store(true, Ordering::Relaxed);
-                            println!("{}", word);
-                            if prove {
-                                println!("\t{}", mine.root.stringify(done));
+                    if cache.contains_key(&word) {
+                        println!("{}", word);
+                        if prove {
+                            println!("\t{}", cache.get(&word).unwrap());
+                        }
+                    } else {
+                        let noah = noah.clone();
+                        let mine = noah.clone();
+                        if let Some(usizes) = noah.clone().root.translator.translate(word.as_str())
+                        {
+                            // can we make a least one anagram with the remainder after we subtract this word?
+                            let mut cc = cc.clone();
+                            cc.subtract(usizes.to_vec());
+                            let materials = vec![ToDo::seed(cc)];
+                            let (messages, kill_switch) =
+                                factory::manufacture(threads, 3, materials, noah.clone());
+                            if let Some(Some(done)) = messages.iter().next() {
+                                kill_switch.store(true, Ordering::Relaxed);
+                                println!("{}", word);
+                                let s = if prove {
+                                    word.clone() + " " + &mine.root.stringify(done)
+                                } else {
+                                    mine.root.stringify(done)
+                                };
+                                if prove {
+                                    println!("\t{}", s);
+                                } else {
+                                    // only do this if we're not proving, because we aren't always saving the proof in the cache
+                                    for ow in words_in_word(&word, noah.clone(), threads) {
+                                        if ow.len() >= min_word_length
+                                            && ow > word
+                                            && !cache.contains_key(&ow)
+                                        {
+                                            cache.insert(ow, s.clone());
+                                        }
+                                    }
+                                }
+                                for other_word in s.as_str().split(" ") {
+                                    if prove {
+                                        if other_word.len() >= min_word_length && other_word > &word
+                                        {
+                                            cache.insert(String::from(other_word), s.clone());
+                                        }
+                                    } else {
+                                    for ow in words_in_word(other_word, noah.clone(), threads) {
+                                        if ow.len() >= min_word_length
+                                            && ow > word
+                                            && !cache.contains_key(&ow)
+                                        {
+                                            cache.insert(ow, s.clone());
+                                        }
+                                    }
+                                    }
+                                }
                             }
                         }
                     }
@@ -216,6 +257,35 @@ fn main() {
             }
         }
     }
+}
+
+// fetch the anagrams of a word -- useful for --strict and --prove
+fn words_in_word(word: &str, noah: Arc<AnagramFun>, threads: usize) -> Vec<String> {
+    let mut cc = noah
+        .root
+        .translator
+        .count(&normalize(""))
+        .expect("no luck with the char count");
+    if let Some(usizes) = noah.root.translator.translate(word) {
+        if !cc.add(usizes) {
+            dictionary_error(word, &noah)
+        }
+    } else {
+        dictionary_error(word, &noah)
+    }
+    let materials = vec![ToDo::seed(cc)];
+    let (messages, _) = factory::manufacture(threads, 3, materials, noah.clone());
+    let mut words = vec![];
+    for m in messages {
+        if let Some(todo) = m {
+            for word in todo.words() {
+                words.push(noah.root.translator.etalsnart(&word).unwrap());
+            }
+        } else {
+            break;
+        }
+    }
+    words
 }
 
 fn dictionary_error(word: &str, af: &AnagramFun) -> ! {
