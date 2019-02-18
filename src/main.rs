@@ -205,14 +205,14 @@ fn main() {
                                             cache.insert(String::from(other_word), s.clone());
                                         }
                                     } else {
-                                    for ow in words_in_word(other_word, noah.clone(), threads) {
-                                        if ow.len() >= min_word_length
-                                            && ow > word
-                                            && !cache.contains_key(&ow)
-                                        {
-                                            cache.insert(ow, s.clone());
+                                        for ow in words_in_word(other_word, noah.clone(), threads) {
+                                            if ow.len() >= min_word_length
+                                                && ow > word
+                                                && !cache.contains_key(&ow)
+                                            {
+                                                cache.insert(ow, s.clone());
+                                            }
                                         }
-                                    }
                                     }
                                 }
                             }
