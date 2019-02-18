@@ -14,9 +14,9 @@ pub fn parse<'a>(cpus: &'a str, dictionary: Option<&'a str>) -> App<'a, 'a> {
         dictionary_argument = dictionary_argument.default_value(file);
     }
     App::new("rana")
-        .version("0.1")
-        .author("David F. Houghton <dfhoughton@gmail.com>, jwmhjwmh@gmail.com")
-        .about("Finds anagrams of a phrase")
+        .version(crate_version!())
+        .author(crate_authors!(", "))
+        .about(crate_description!())
         .arg(dictionary_argument)
         .arg(
             Arg::with_name("set")
@@ -224,5 +224,6 @@ before you encounter this collision.
 
 Another consideration with caching is that this scheme can only accommodate
 alphabets up to 38 characters in size.
-"#.to_string()
+"#
+    .to_string()
 }
