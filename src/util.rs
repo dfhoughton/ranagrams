@@ -1,10 +1,10 @@
 //! collection of structs mediating between words and tries and representing
 //! intermediate states in the discovery of anagrams
 
-use std::collections::HashMap;
-use std::sync::Arc;
 use std::cmp::{Eq, PartialEq};
+use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
+use std::sync::Arc;
 
 /// Actually, there are currently no tests. The proof is in the pudding.
 #[cfg(test)]
@@ -239,6 +239,7 @@ impl CharCount {
 /// words. For anagram calculation words are treated as pure numeric sequences.
 /// The translator converts back and forth and also keeps track of character
 /// frequences in order to produce a dense trie representation of a word list.
+#[derive(Clone)]
 pub struct Translator {
     map: HashMap<char, usize>,
     map_back: HashMap<usize, char>,

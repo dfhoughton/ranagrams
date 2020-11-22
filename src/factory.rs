@@ -1,10 +1,10 @@
 //! thread model
 
+use std::cmp;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread::{self, Builder};
-use std::cmp;
-use std::sync::mpsc::{Receiver, Sender};
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 /// Messages the monitor thread sends to worker threads to control their
 /// activity.
@@ -15,7 +15,7 @@ enum BossMessage {
 }
 
 /// Messages worker threads send to the monitor thread to allow it to keep
-/// track fo their state and distribute work.
+/// track of their state and distribute work.
 #[derive(PartialEq, Eq, Debug)]
 enum WorkerMessage {
     WakeUp,
@@ -23,7 +23,7 @@ enum WorkerMessage {
     Sleeping(usize), // usize is an id indicating the sleeper
 }
 
-/// The resume (trait) required of worker threads who wish to work in the
+/// The résumé (trait) required of worker threads who wish to work in the
 /// factory. The general pattern of work is that workers inspect an item (`I`)
 /// to see whether it can be shipped. If not, they improve it, making some
 /// number of improved items.
@@ -162,7 +162,8 @@ fn work<I, W>(
             }
             manager.send(WorkerMessage::Sleeping(i)).ok(); // send I'm empty message
         }
-    }).unwrap();
+    })
+    .unwrap();
 }
 
 fn supervize<I>(

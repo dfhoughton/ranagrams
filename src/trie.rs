@@ -1,6 +1,8 @@
 //! efficient representation of word lists
 
-use rand::{Rng, StdRng};
+// use rand::rngs::StdRng;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::mem::size_of;
@@ -17,18 +19,11 @@ pub struct Trie {
     pub use_cache: bool,
     pub shuffle: bool,
     empty_list: Arc<Vec<(Arc<Vec<usize>>, Arc<CharCount>)>>,
-    rng: Option<StdRng>,
     powers_of_ten: Vec<u128>,
 }
 
 impl Trie {
-    pub fn new(
-        root: TrieNode,
-        translator: Translator,
-        use_cache: bool,
-        shuffle: bool,
-        rng: Option<StdRng>,
-    ) -> Trie {
+    pub fn new(root: TrieNode, translator: Translator, use_cache: bool, shuffle: bool) -> Trie {
         let powers_of_ten = if use_cache {
             let n = translator.alphabet_size();
             if n > 38 {
@@ -49,7 +44,6 @@ impl Trie {
             translator,
             use_cache,
             shuffle,
-            rng,
             cache: RwLock::new(HashMap::new()),
             empty_list: Arc::new(Vec::with_capacity(0)),
             powers_of_ten: powers_of_ten,
@@ -102,6 +96,15 @@ impl Trie {
             }
         }
     }
+    /// Removes the given word from the trie
+    pub fn remove(&mut self, word: &[usize]) {
+        let n = self.root.clone().remove(word);
+        self.root = if let Some(n) = n {
+            n
+        } else {
+            TrieNodeBuilder::new().build()
+        };
+    }
     /// Produces the words, in their numeric representation, extractable from
     /// a `CharCount` along with the residual `CharCount`s remaining after their
     /// extraction. More precisely, it is those words sorting at or above the
@@ -144,7 +147,8 @@ impl Trie {
             filtered.push((word.clone(), counts.clone()));
         }
         if self.shuffle {
-            self.rng.unwrap().shuffle(&mut filtered);
+            let mut rng = thread_rng();
+            filtered.shuffle(&mut rng);
         }
         filtered
     }
@@ -188,13 +192,7 @@ impl Trie {
         for (word, _) in self.words_for(Arc::new(cc), &Vec::with_capacity(0), &true) {
             tnb.add(&word);
         }
-        Trie::new(
-            tnb.build(),
-            self.translator,
-            self.use_cache,
-            self.shuffle,
-            self.rng,
-        )
+        Trie::new(tnb.build(), self.translator, self.use_cache, self.shuffle)
     }
     /// Convert a `ToDo` from a linked list of words in numeric representation
     /// to a single `String` representing an anagram.
@@ -267,11 +265,26 @@ impl Trie {
         }
     }
 }
+
+impl Clone for Trie {
+    fn clone(&self) -> Self {
+        Trie {
+            root: self.root.clone(),
+            translator: self.translator.clone(),
+            use_cache: self.use_cache.clone(),
+            shuffle: self.shuffle.clone(),
+            cache: RwLock::new(self.cache.read().unwrap().clone()),
+            empty_list: self.empty_list.clone(),
+            powers_of_ten: self.powers_of_ten.clone(),
+        }
+    }
+}
+
 /// A node in a trie (re`trie`val tree) representing a word list. A `TrieNode`
 /// contains a boolean indicating whether it is the end of a word and a list
 /// of child nodes representing possible continuations of the prefix represented
 /// by the node itself.
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct TrieNode {
     pub terminal: bool,
     pub children: Box<[Option<TrieNode>]>,
@@ -286,6 +299,44 @@ impl TrieNode {
                 child.contains(&word[1..])
             } else {
                 false
+            }
+        }
+    }
+    fn remove(mut self, word: &[usize]) -> Option<TrieNode> {
+        if !self.contains(word) {
+            Some(self)
+        } else {
+            if word.is_empty() {
+                if self.children.is_empty() {
+                    None
+                } else {
+                    self.terminal = false;
+                    Some(self)
+                }
+            } else {
+                let i = word[0];
+                let mut v = self.children.to_vec();
+                let n = v.remove(i).unwrap().remove(&word[1..]);
+                if n.is_none() {
+                    if v.iter().all(|ref o| o.is_none()) {
+                        //
+                        if self.terminal {
+                            self.children = vec![].into_boxed_slice();
+                            Some(self)
+                        } else {
+                            None
+                        }
+                    } else {
+                        if i < v.len() {
+                            v.insert(i, n);
+                        }
+                        self.children = v.into_boxed_slice();
+                        Some(self)
+                    }
+                } else {
+                    self.children[i] = n;
+                    Some(self)
+                }
             }
         }
     }

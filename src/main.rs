@@ -11,8 +11,6 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 extern crate clap;
 use clap::ArgMatches;
-extern crate rand;
-use rand::StdRng;
 extern crate num_cpus;
 use std::ops::Deref;
 use std::process;
@@ -98,7 +96,7 @@ fn main() {
     } else {
         min_word_length
     };
-    let trie = make_trie(&options, trie_word_length);
+    let mut trie = make_trie(&options, trie_word_length);
 
     // create initial character count
     let mut cc = trie
@@ -143,20 +141,20 @@ fn main() {
         }
     }
     cc.set_limits();
-    let af = AnagramFun { root: trie.optimize(cc.clone()) };
+    trie = trie.optimize(cc.clone());
 
     if options.is_present("set") {
         if options.is_present("strict") || options.is_present("prove") {
             let prove = options.is_present("prove");
             let sort_key = Vec::with_capacity(0);
-            let mut found: Vec<String> = af
-                .root
+            // find candidate words -- these are embedded in the initial character count and thus
+            // are the only ones that might be in an anagram
+            let mut found: Vec<String> = trie
                 .words_for(Arc::new(cc.clone()), &sort_key, &true)
                 .into_iter()
-                .map(|(chars, _)| af.root.translator.etalsnart(&chars).unwrap())
+                .map(|(chars, _)| trie.translator.etalsnart(&chars).unwrap())
                 .collect();
             found.sort();
-            let noah = Arc::new(af);
             let mut cache: HashMap<String, String> = HashMap::new();
             for word in found {
                 if word.len() >= min_word_length {
@@ -166,23 +164,21 @@ fn main() {
                             println!("\t{}", cache.get(&word).unwrap());
                         }
                     } else {
-                        let noah = noah.clone();
-                        let mine = noah.clone();
-                        if let Some(usizes) = noah.clone().root.translator.translate(word.as_str())
-                        {
+                        if let Some(usizes) = trie.translator.translate(word.as_str()) {
                             // can we make a least one anagram with the remainder after we subtract this word?
                             let mut cc = cc.clone();
                             cc.subtract(usizes.to_vec());
                             let materials = vec![ToDo::seed(cc)];
+                            let noah = Arc::new(AnagramFun { root: trie.clone() });
                             let (messages, kill_switch) =
                                 factory::manufacture(threads, 3, materials, noah.clone());
                             if let Some(Some(done)) = messages.iter().next() {
                                 kill_switch.store(true, Ordering::Relaxed);
                                 println!("{}", word);
                                 let s = if prove {
-                                    word.clone() + " " + &mine.root.stringify(done)
+                                    word.clone() + " " + &trie.stringify(done)
                                 } else {
-                                    mine.root.stringify(done)
+                                    trie.stringify(done)
                                 };
                                 if prove {
                                     println!("\t{}", s);
@@ -214,6 +210,8 @@ fn main() {
                                         }
                                     }
                                 }
+                            } else {
+                                trie.remove(&usizes);
                             }
                         }
                     }
@@ -221,11 +219,10 @@ fn main() {
             }
         } else {
             let sort_key = Vec::with_capacity(0);
-            let mut found: Vec<String> = af
-                .root
+            let mut found: Vec<String> = trie
                 .words_for(Arc::new(cc), &sort_key, &true)
                 .into_iter()
-                .map(|(chars, _)| af.root.translator.etalsnart(&chars).unwrap())
+                .map(|(chars, _)| trie.translator.etalsnart(&chars).unwrap())
                 .collect();
             found.sort();
             for word in found {
@@ -235,7 +232,7 @@ fn main() {
     } else {
         let mut count = 0;
         let materials = vec![ToDo::seed(cc)];
-        let noah = Arc::new(af);
+        let noah = Arc::new(AnagramFun { root: trie });
         let mine = noah.clone();
         let (messages, kill_switch) = factory::manufacture(threads, 3, materials, noah);
         for m in messages {
@@ -338,17 +335,11 @@ fn make_trie(opts: &ArgMatches, minimum_word_length: usize) -> Trie {
         t.add(&translation);
     }
     let random = opts.is_present("random");
-    let rng = if random {
-        Some(StdRng::new().unwrap())
-    } else {
-        None
-    };
     Trie::new(
         t.build(),
         translator,
         !(opts.is_present("no_cache") || opts.is_present("set")),
         random,
-        rng,
     )
 }
 

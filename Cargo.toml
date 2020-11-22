@@ -1,6 +1,6 @@
 [package]
 name = "ranagrams"
-version = "0.2.4"
+version = "1.0.0"
 authors = ["dfhoughton <dfhoughton@gmail.com>","jwmhjwmh@gmail.com"]
 description= "anagram discovery tool"
 homepage = "https://github.com/dfhoughton/ranagrams"
@@ -21,5 +21,5 @@ path = "src/main.rs"
 num_cpus = "1"
 mpmc = "0.1" # for queue
 clap = "2"
-rand = "0.4"
-dirs = "1"
+rand = "0.7.3"
+dirs = "2"
