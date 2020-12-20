@@ -51,17 +51,15 @@ impl Trie {
     }
     // for comparing two sort keys
     fn compare_words(a: &[usize], b: &[usize]) -> Ordering {
-        unsafe {
-            for (i, count) in a.iter().enumerate() {
-                if i == b.len() {
-                    return Ordering::Greater;
-                }
-                let count2 = &b.get_unchecked(i);
-                if count > count2 {
-                    return Ordering::Greater;
-                } else if count < count2 {
-                    return Ordering::Less;
-                }
+        for (i, count) in a.iter().enumerate() {
+            if i >= b.len() {
+                return Ordering::Greater;
+            }
+            let count2 = b.get(i).unwrap();
+            if count > count2 {
+                return Ordering::Greater;
+            } else if count < count2 {
+                return Ordering::Less;
             }
         }
         if a.len() < b.len() {
@@ -399,14 +397,12 @@ impl TrieNodeBuilder {
                 *child = Some(TrieNodeBuilder::new());
                 child
             }
-        } else if unsafe { self.children.get_unchecked(i).is_none() } {
-            unsafe {
-                let child = self.children.get_unchecked_mut(i);
-                *child = Some(TrieNodeBuilder::new());
-                child
-            }
+        } else if self.children.get(i).unwrap().is_none() {
+            let child = &mut self.children[i];
+            *child = Some(TrieNodeBuilder::new());
+            child
         } else {
-            unsafe { self.children.get_unchecked_mut(i) }
+            &mut self.children[i]
         }
     }
     /// Adds a word to the trie.

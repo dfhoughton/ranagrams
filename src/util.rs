@@ -186,9 +186,7 @@ impl CharCount {
             if i >= self.counts.len() || self.counts[i] == 0 {
                 return Some((idx, copy));
             }
-            unsafe {
-                *self.counts.get_unchecked_mut(i) -= 1;
-            }
+            self.counts[i] -= 1;
             self.sum -= 1;
         }
         None
